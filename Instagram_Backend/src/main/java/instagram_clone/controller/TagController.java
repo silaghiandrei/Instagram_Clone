@@ -25,7 +25,7 @@ public class TagController {
 
     @GetMapping({"/get/{id}"})
     public ResponseEntity<Tag> getTagById(@PathVariable Long id) {
-        return (ResponseEntity)this.tagService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        return this.tagService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping({"/getAll"})

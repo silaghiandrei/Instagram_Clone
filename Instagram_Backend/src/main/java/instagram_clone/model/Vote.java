@@ -11,9 +11,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "votes", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "content_id"})})
 public class Vote {

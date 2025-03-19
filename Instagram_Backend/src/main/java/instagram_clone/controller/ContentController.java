@@ -24,17 +24,17 @@ public class ContentController {
         this.contentService = contentService;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Content> createContent(@RequestBody Content content) {
         return ResponseEntity.ok(this.contentService.save(content));
     }
 
-    @GetMapping({"/{id}"})
+    @GetMapping({"/get/{id}"})
     public ResponseEntity<Content> getContentById(@PathVariable Long id) {
         return this.contentService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping
+    @GetMapping("/getAll")
     public ResponseEntity<List<Content>> getAllContents() {
         return ResponseEntity.ok(this.contentService.findAll());
     }
@@ -59,7 +59,12 @@ public class ContentController {
         return ResponseEntity.ok(this.contentService.findByAuthorId(authorId));
     }
 
-    @PutMapping({"/{id}"})
+    @GetMapping({"/posts/author/{authorId}"})
+    public ResponseEntity<List<Content>> getPostsByAuthor(@PathVariable Long authorId) {
+        return ResponseEntity.ok(this.contentService.findPostsByAuthorId(authorId));
+    }
+
+    @PutMapping({"/update/{id}"})
     public ResponseEntity<Content> updateContent(@PathVariable Long id, @RequestBody Content content) {
         if (this.contentService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -69,7 +74,7 @@ public class ContentController {
         }
     }
 
-    @DeleteMapping({"/{id}"})
+    @DeleteMapping({"/delete/{id}"})
     public ResponseEntity<Void> deleteContent(@PathVariable Long id) {
         if (this.contentService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();

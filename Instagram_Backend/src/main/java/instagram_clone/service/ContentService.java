@@ -47,4 +47,8 @@ public class ContentService {
     public List<Content> findByAuthorId(Long authorId) {
         return this.contentRepository.findByAuthorId(authorId);
     }
+
+    public List<Content> findPostsByAuthorId(Long authorId) {
+        return this.contentRepository.findByAuthorIdAndType(authorId, ContentType.POST);
+    }
 }

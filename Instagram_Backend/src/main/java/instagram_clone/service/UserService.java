@@ -2,7 +2,6 @@ package instagram_clone.service;
 
 import instagram_clone.model.User;
 import instagram_clone.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
