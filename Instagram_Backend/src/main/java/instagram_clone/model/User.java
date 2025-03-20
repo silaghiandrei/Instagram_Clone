@@ -25,21 +25,29 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @Column(name = "username", unique = true, nullable = false, length = 50)
     private String username;
+
     @Column(name = "email", unique = true, nullable = false, length = 100)
     private String email;
+
     @Column(name = "password", nullable = false, length = 100)
     private String password;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private UserRole role;
+
     @Column(name = "score")
     private Integer score;
+
     @Column(name = "banned")
     private Boolean banned;
+
     @OneToMany(mappedBy = "author", cascade = {CascadeType.ALL})
     private List<Content> contents = new ArrayList();
+
     @OneToMany(mappedBy = "user", cascade = {CascadeType.ALL})
     private Set<Vote> votes = new HashSet();
 }

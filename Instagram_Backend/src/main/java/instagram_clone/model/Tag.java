@@ -20,8 +20,10 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @Column(name = "name", unique = true, nullable = false, length = 50)
     private String name;
+
     @ManyToMany(mappedBy = "tags")
     private Set<Content> contents = new HashSet();
 }
