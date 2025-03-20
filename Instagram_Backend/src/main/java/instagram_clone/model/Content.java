@@ -31,31 +31,42 @@ public class Content {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private ContentType type;
+
     @Column(name = "title", nullable = true)
     private String title;
+
     @Column(name = "text", nullable = false, length = 500)
     private String text;
+
     @Lob
     @Column(name = "image")
     private byte[] image;
+
     @Column(name = "date_time", nullable = false)
     private LocalDateTime dateTime;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private PostStatus status;
+
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Content parent;
+
     @OneToMany(mappedBy = "parent", cascade = {CascadeType.ALL})
     private List<Content> children = new ArrayList();
+
     @OneToMany(mappedBy = "content", cascade = {CascadeType.ALL})
     private Set<Vote> votes = new HashSet();
+
     @ManyToMany
     @JoinTable(name = "content_tags", joinColumns = {@JoinColumn(name = "content_id")}, inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private Set<Tag> tags = new HashSet();

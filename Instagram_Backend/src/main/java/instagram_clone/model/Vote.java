@@ -23,15 +23,19 @@ public class Vote {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
     @ManyToOne
     @JoinColumn(name = "content_id", nullable = false)
     private Content content;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private VoteType type;
+
     @Column(name = "date_time", nullable = false)
     private LocalDateTime dateTime;
 }

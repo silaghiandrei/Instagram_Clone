@@ -1,0 +1,31 @@
+{
+  "info": {
+    "name": "Tags requests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Tag",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/tags/create",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tags", "create"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"john_doe\" \n}"
+        }
+      }
+    }
+  ]
+}

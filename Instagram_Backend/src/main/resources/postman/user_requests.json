@@ -1,0 +1,31 @@
+{
+    "info": {
+        "name": "User requests",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Create User",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "http://localhost:8080/users/create",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["users", "create"]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"username\": \"john_doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"securePassword123!\",\n    \"role\": \"USER\",\n    \"score\": 0,\n    \"banned\": false\n}"
+                }
+            }
+        }
+    ]
+} 
