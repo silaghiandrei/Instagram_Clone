@@ -13,7 +13,6 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
 
     List<Content> findByParentId(Long parentId);
 
-    List<Content> findByAuthorId(Long authorId);
-
     List<Content> findByAuthorIdAndType(Long authorId, ContentType type);
+
 }
