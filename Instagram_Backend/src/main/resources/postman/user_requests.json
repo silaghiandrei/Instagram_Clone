@@ -23,9 +23,71 @@
                 },
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n    \"username\": \"john_doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"securePassword123!\",\n    \"role\": \"USER\",\n    \"score\": 0,\n    \"banned\": false\n}"
+                    "raw": "{\n    \"username\": \"john_doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\",\n    \"role\": \"USER\",\n    \"score\": 10,\n    \"banned\": false\n}"
+                }
+            }
+        },
+        {
+            "name": "Get User by ID",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:8080/users/get/1",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["users", "get", "1"]
+                }
+            }
+        },
+        {
+            "name": "Get All Users",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:8080/users/getAll",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["users", "getAll"]
+                }
+            }
+        },
+        {
+            "name": "Update User",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "http://localhost:8080/users/update/1",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["users", "update", "1"]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"username\": \"john_doe_updated\",\n    \"email\": \"john_updated@example.com\",\n    \"role\": \"USER\",\n    \"score\": 20,\n    \"banned\": false\n}"
+                }
+            }
+        },
+        {
+            "name": "Delete User",
+            "request": {
+                "method": "DELETE",
+                "url": {
+                    "raw": "http://localhost:8080/users/delete/1",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["users", "delete", "1"]
                 }
             }
         }
     ]
-} 
+}

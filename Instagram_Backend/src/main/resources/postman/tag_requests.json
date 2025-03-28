@@ -23,7 +23,69 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"name\": \"john_doe\" \n}"
+          "raw": "{\n    \"name\": \"john_doe\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get Tag by ID",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/tags/get/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tags", "get", "1"]
+        }
+      }
+    },
+    {
+      "name": "Get All Tags",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/tags/getAll",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tags", "getAll"]
+        }
+      }
+    },
+    {
+      "name": "Update Tag",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/tags/update/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tags", "update", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"id\": 1,\n    \"name\": \"john_doe_updated\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Delete Tag",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "http://localhost:8080/tags/delete/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tags", "delete", "1"]
         }
       }
     }

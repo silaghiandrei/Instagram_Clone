@@ -1,5 +1,9 @@
 package instagram_clone.controller;
 
+import instagram_clone.dto.UserCreateDTO;
+import instagram_clone.dto.UserDTO;
+import instagram_clone.dtoconverter.UserConverter;
+import instagram_clone.dtoconverter.UserCreateConverter;
 import instagram_clone.model.User;
 import instagram_clone.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -24,32 +28,32 @@ public class UserController {
     }
 
     @PostMapping({"/create"})
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        return ResponseEntity.ok(this.userService.save(user));
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserCreateDTO userCreateDTO) {
+        UserDTO savedUser = this.userService.create(userCreateDTO);
+        return ResponseEntity.ok(savedUser);
     }
 
-    @GetMapping({"/get/{id}"})
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return this.userService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    @GetMapping("/get/{id}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        UserDTO user = this.userService.findById(id);
+        return ResponseEntity.ok(user);
     }
 
-    @GetMapping({"/getAll"})
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(this.userService.findAll());
+    @GetMapping("/getAll")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = this.userService.findAll();
+        return ResponseEntity.ok(users);
     }
 
-    @PutMapping({"/update/{id}"})
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        return this.userService.findById(id).isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(this.userService.save(user));
+    @PutMapping("/update/{id}")
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        UserDTO user = this.userService.update(id, userDTO);
+        return ResponseEntity.ok(user);
     }
 
-    @DeleteMapping({"/delete/{id}"})
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (this.userService.findById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        } else {
-            this.userService.deleteById(id);
-            return ResponseEntity.ok().build();
-        }
+        this.userService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

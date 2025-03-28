@@ -1,22 +1,14 @@
 package instagram_clone.controller;
 
-import instagram_clone.model.Content;
+import instagram_clone.dto.ContentDTO;
 import instagram_clone.service.ContentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping({"/contents"})
+@RequestMapping("/contents")
 public class ContentController {
     private final ContentService contentService;
 
@@ -25,62 +17,50 @@ public class ContentController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Content> createContent(@RequestBody Content content) {
-        return ResponseEntity.ok(this.contentService.save(content));
+    public ResponseEntity<ContentDTO> createContent(@RequestBody ContentDTO contentDTO) {
+        ContentDTO savedContent = this.contentService.create(contentDTO);
+        return ResponseEntity.ok(savedContent);
     }
 
-    @GetMapping({"/get/{id}"})
-    public ResponseEntity<Content> getContentById(@PathVariable Long id) {
-        return this.contentService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    @GetMapping("/get/{id}")
+    public ResponseEntity<ContentDTO> getContentById(@PathVariable Long id) {
+        ContentDTO content = this.contentService.findById(id);
+        return ResponseEntity.ok(content);
     }
 
-    @GetMapping("/getAll")
-    public ResponseEntity<List<Content>> getAllContents() {
-        return ResponseEntity.ok(this.contentService.findAll());
+    @GetMapping("/posts")
+    public ResponseEntity<List<ContentDTO>> getAllPosts() {
+        List<ContentDTO> posts = this.contentService.findAllPosts();
+        return ResponseEntity.ok(posts);
     }
 
-    @GetMapping({"/posts"})
-    public ResponseEntity<List<Content>> getAllPosts() {
-        return ResponseEntity.ok(this.contentService.findAllPosts());
+    @GetMapping("/comments/parent/{parentId}")
+    public ResponseEntity<List<ContentDTO>> getCommentsByParent(@PathVariable Long parentId) {
+        List<ContentDTO> comments = this.contentService.findAllCommentsByParentId(parentId);
+        return ResponseEntity.ok(comments);
     }
 
-    @GetMapping({"/comments"})
-    public ResponseEntity<List<Content>> getAllComments() {
-        return ResponseEntity.ok(this.contentService.findAllComments());
+    @GetMapping("/posts/author/{authorId}")
+    public ResponseEntity<List<ContentDTO>> getPostsByAuthor(@PathVariable Long authorId) {
+        List<ContentDTO> posts = this.contentService.findPostsByAuthorId(authorId);
+        return ResponseEntity.ok(posts);
     }
 
-    @GetMapping({"/comments/parent/{parentId}"})
-    public ResponseEntity<List<Content>> getCommentsByParent(@PathVariable Long parentId) {
-        return ResponseEntity.ok(this.contentService.findCommentsByParentId(parentId));
+    @GetMapping("/comments/author/{authorId}")
+    public ResponseEntity<List<ContentDTO>> getCommentsByAuthor(@PathVariable Long authorId) {
+        List<ContentDTO> comments = this.contentService.findCommentsByAuthorId(authorId);
+        return ResponseEntity.ok(comments);
     }
 
-    @GetMapping({"/author/{authorId}"})
-    public ResponseEntity<List<Content>> getContentsByAuthor(@PathVariable Long authorId) {
-        return ResponseEntity.ok(this.contentService.findByAuthorId(authorId));
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ContentDTO> updateContent(@PathVariable Long id, @RequestBody ContentDTO contentDTO) {
+        ContentDTO content = this.contentService.update(id, contentDTO);
+        return ResponseEntity.ok(content);
     }
 
-    @GetMapping({"/posts/author/{authorId}"})
-    public ResponseEntity<List<Content>> getPostsByAuthor(@PathVariable Long authorId) {
-        return ResponseEntity.ok(this.contentService.findPostsByAuthorId(authorId));
-    }
-
-    @PutMapping({"/update/{id}"})
-    public ResponseEntity<Content> updateContent(@PathVariable Long id, @RequestBody Content content) {
-        if (this.contentService.findById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        } else {
-            content.setId(id);
-            return ResponseEntity.ok(this.contentService.save(content));
-        }
-    }
-
-    @DeleteMapping({"/delete/{id}"})
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteContent(@PathVariable Long id) {
-        if (this.contentService.findById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        } else {
-            this.contentService.deleteById(id);
-            return ResponseEntity.ok().build();
-        }
+        this.contentService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

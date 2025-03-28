@@ -1,12 +1,17 @@
 package instagram_clone.service;
 
+import instagram_clone.dto.UserCreateDTO;
+import instagram_clone.dto.UserDTO;
+import instagram_clone.dtoconverter.UserConverter;
+import instagram_clone.dtoconverter.UserCreateConverter;
+import instagram_clone.exceptions.NonexistentUser;
 import instagram_clone.model.User;
 import instagram_clone.repository.UserRepository;
 import instagram_clone.security.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -18,24 +23,35 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return this.userRepository.save(user);
+    public UserDTO create(UserCreateDTO userDTO) {
+        if (userDTO.getPassword() != null) {
+            userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }
+        User user = UserCreateConverter.toEntity(userDTO);
+        this.userRepository.save(user);
+        return UserConverter.toDTO(user);
     }
 
-    public Optional<User> findById(Long id) {
-        return this.userRepository.findById(id);
+    public UserDTO update(Long id, UserDTO userDTO) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setUsername(userDTO.getUsername());
+        user.setEmail(userDTO.getEmail());
+        user.setRole(userDTO.getRole());
+        user.setScore(userDTO.getScore());
+        user.setBanned(userDTO.getBanned());
+        this.userRepository.save(user);
+        return UserConverter.toDTO(user);
     }
 
-    public List<User> findAll() {
-        return this.userRepository.findAll();
+    public UserDTO findById(Long id) {
+        return UserConverter.toDTO(this.userRepository.findById(id).orElseThrow());
+    }
+
+    public List<UserDTO> findAll() {
+        return this.userRepository.findAll().stream().map(UserConverter::toDTO).collect(Collectors.toList());
     }
 
     public void deleteById(Long id) {
         this.userRepository.deleteById(id);
-    }
-
-    public boolean validatePassword(User user, String rawPassword) {
-        return passwordEncoder.matches(rawPassword, user.getPassword());
     }
 }

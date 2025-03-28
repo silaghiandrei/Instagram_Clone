@@ -40,7 +40,7 @@ public class Content {
     @Column(name = "type", nullable = false)
     private ContentType type;
 
-    @Column(name = "title", nullable = true)
+    @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "text", nullable = false, length = 500)
@@ -57,17 +57,20 @@ public class Content {
     @Column(name = "status")
     private PostStatus status;
 
+    @Column(name = "is_commentable")
+    private boolean isCommentable;
+
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Content parent;
 
     @OneToMany(mappedBy = "parent", cascade = {CascadeType.ALL})
-    private List<Content> children = new ArrayList();
+    private List<Content> children = new ArrayList<>();
 
     @OneToMany(mappedBy = "content", cascade = {CascadeType.ALL})
-    private Set<Vote> votes = new HashSet();
+    private Set<Vote> votes = new HashSet<>();
 
     @ManyToMany
     @JoinTable(name = "content_tags", joinColumns = {@JoinColumn(name = "content_id")}, inverseJoinColumns = {@JoinColumn(name = "tag_id")})
-    private Set<Tag> tags = new HashSet();
+    private Set<Tag> tags = new HashSet<>();
 }
