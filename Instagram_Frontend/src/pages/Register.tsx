@@ -1,126 +1,68 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Link,
-} from '@mui/material';
-import '../styles/Login.css';
-
-interface RegisterFormData {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+import { Container, Typography, Box } from '@mui/material';
+import RegisterForm from '../components/RegisterForm';
+import { authService } from '../services/authService';
+import { RegisterFormData } from '../types';
 
 const Register: React.FC = () => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState<RegisterFormData>({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+    const navigate = useNavigate();
+    const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        if (formData.password !== formData.confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        try {
+            await authService.register(formData);
+            navigate('/user');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Registration failed');
+        }
+    };
+
+    const [formData, setFormData] = useState<RegisterFormData>({
+        email: '',
+        username: '',
+        password: '',
+        confirmPassword: ''
     });
-  };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
-      return;
-    }
-    try {
-      console.log('Register attempt with:', formData);
-      // TODO: Add register API call
-    } catch (error) {
-      console.error('Registration failed:', error);
-    }
-  };
-
-  return (
-    <Container maxWidth="sm" className="login-container">
-      <Paper elevation={3} className="login-paper">
-        <Typography variant="h4" className="login-title">
-          Instagram Clone
-        </Typography>
-        <Typography variant="body1" className="login-subtitle">
-          Sign up to see photos and videos from your friends.
-        </Typography>
-        
-        <form onSubmit={handleSubmit} className="login-form">
-          <TextField
-            fullWidth
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            fullWidth
-            label="Username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            fullWidth
-            label="Password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            fullWidth
-            label="Confirm Password"
-            name="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
-          <Button
-            fullWidth
-            variant="contained"
-            color="secondary"
-            type="submit"
-            className="login-button"
-          >
-            Sign Up
-          </Button>
-        </form>
-
-        <Box sx={{ textAlign: 'center', mt: 3 }}>
-          <Typography variant="body2" color="text.secondary">
-            Have an account?{' '}
-            <Link
-              component="button"
-              variant="body2"
-              onClick={() => navigate('/')}
-              sx={{ textDecoration: 'none' }}
+    return (
+        <Container component="main" maxWidth="xs">
+            <Box
+                sx={{
+                    marginTop: 8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                }}
             >
-              Log in
-            </Link>
-          </Typography>
-        </Box>
-      </Paper>
-    </Container>
-  );
+                <Typography component="h1" variant="h5">
+                    Register
+                </Typography>
+                <RegisterForm
+                    formData={formData}
+                    onChange={handleChange}
+                    onSubmit={handleSubmit}
+                    error={error}
+                />
+            </Box>
+        </Container>
+    );
 };
 
 export default Register; 

@@ -32,6 +32,17 @@ public class UserService {
         return UserConverter.toDTO(user);
     }
 
+    public UserDTO login(String username, String password) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NonexistentUser("User not found"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        return UserConverter.toDTO(user);
+    }
+
     public UserDTO update(Long id, UserDTO userDTO) {
         User user = userRepository.findById(id).orElseThrow();
         user.setUsername(userDTO.getUsername());

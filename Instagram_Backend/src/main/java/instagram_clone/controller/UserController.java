@@ -1,5 +1,6 @@
 package instagram_clone.controller;
 
+import instagram_clone.dto.LoginDTO;
 import instagram_clone.dto.UserCreateDTO;
 import instagram_clone.dto.UserDTO;
 import instagram_clone.dtoconverter.UserConverter;
@@ -7,16 +8,11 @@ import instagram_clone.dtoconverter.UserCreateConverter;
 import instagram_clone.model.User;
 import instagram_clone.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping({"/users"})
@@ -31,6 +27,21 @@ public class UserController {
     public ResponseEntity<UserDTO> createUser(@RequestBody UserCreateDTO userCreateDTO) {
         UserDTO savedUser = this.userService.create(userCreateDTO);
         return ResponseEntity.ok(savedUser);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+        try {
+            UserDTO user = userService.login(loginDTO.getUsername(), loginDTO.getPassword());
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", user);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @GetMapping("/get/{id}")

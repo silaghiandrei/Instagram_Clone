@@ -1,16 +1,9 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Link,
-} from '@mui/material';
+import { Container } from '@mui/material';
 import { LoginFormData } from '../types';
-import '../styles/Login.css';
+import LoginForm from '../components/LoginForm';
+import { authService } from '../services/authService';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +11,7 @@ const Login: React.FC = () => {
     username: '',
     password: '',
   });
+  const [error, setError] = useState<string>('');
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -28,66 +22,27 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
+    
     try {
-      console.log('Login attempt with:', formData);
+      await authService.login(formData);
+      navigate('/user');
     } catch (error) {
       console.error('Login failed:', error);
+      setError('Invalid username or password');
     }
   };
 
   return (
-    <Container maxWidth="sm" className="login-container">
-      <Paper elevation={3} className="login-paper">
-        <Typography variant="h4" className="login-title">
-          Instagram Clone
-        </Typography>
-        <Typography variant="body1" className="login-subtitle">
-          Sign in to see photos and videos from your friends.
-        </Typography>
-        
-        <form onSubmit={handleSubmit} className="login-form">
-          <TextField
-            fullWidth
-            label="Username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            fullWidth
-            label="Password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-          <Button
-            fullWidth
-            variant="contained"
-            color="secondary"
-            type="submit"
-            className="login-button"
-          >
-            Log In
-          </Button>
-        </form>
-
-        <Box sx={{ textAlign: 'center', mt: 3 }}>
-          <Typography variant="body2" color="text.secondary">
-            Don't have an account?{' '}
-            <Link
-              component="button"
-              variant="body2"
-              onClick={() => navigate('/register')}
-              sx={{ textDecoration: 'none' }}
-            >
-              Sign up
-            </Link>
-          </Typography>
-        </Box>
-      </Paper>
+    <Container maxWidth="sm">
+      <LoginForm
+        formData={formData}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+        onSignUpClick={() => navigate('/register')}
+        onBackClick={() => navigate('/')}
+        error={error}
+      />
     </Container>
   );
 };
