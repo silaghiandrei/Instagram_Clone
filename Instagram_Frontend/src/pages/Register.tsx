@@ -9,14 +9,22 @@ import {
   Box,
   Link,
 } from '@mui/material';
-import { LoginFormData } from '../types';
 import '../styles/Login.css';
 
-const Login: React.FC = () => {
+interface RegisterFormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+const Register: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<LoginFormData>({
+  const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
+    email: '',
     password: '',
+    confirmPassword: '',
   });
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -28,10 +36,15 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match!');
+      return;
+    }
     try {
-      console.log('Login attempt with:', formData);
+      console.log('Register attempt with:', formData);
+      // TODO: Add register API call
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Registration failed:', error);
     }
   };
 
@@ -42,10 +55,19 @@ const Login: React.FC = () => {
           Instagram Clone
         </Typography>
         <Typography variant="body1" className="login-subtitle">
-          Sign in to see photos and videos from your friends.
+          Sign up to see photos and videos from your friends.
         </Typography>
         
         <form onSubmit={handleSubmit} className="login-form">
+          <TextField
+            fullWidth
+            label="Email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
           <TextField
             fullWidth
             label="Username"
@@ -63,6 +85,15 @@ const Login: React.FC = () => {
             onChange={handleChange}
             required
           />
+          <TextField
+            fullWidth
+            label="Confirm Password"
+            name="confirmPassword"
+            type="password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+          />
           <Button
             fullWidth
             variant="contained"
@@ -70,20 +101,20 @@ const Login: React.FC = () => {
             type="submit"
             className="login-button"
           >
-            Log In
+            Sign Up
           </Button>
         </form>
 
         <Box sx={{ textAlign: 'center', mt: 3 }}>
           <Typography variant="body2" color="text.secondary">
-            Don't have an account?{' '}
+            Have an account?{' '}
             <Link
               component="button"
               variant="body2"
-              onClick={() => navigate('/register')}
+              onClick={() => navigate('/')}
               sx={{ textDecoration: 'none' }}
             >
-              Sign up
+              Log in
             </Link>
           </Typography>
         </Box>
@@ -92,4 +123,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login; 
+export default Register; 
