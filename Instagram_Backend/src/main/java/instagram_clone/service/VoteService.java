@@ -2,8 +2,13 @@ package instagram_clone.service;
 
 import instagram_clone.model.Vote;
 import instagram_clone.model.VoteType;
+import instagram_clone.model.User;
+import instagram_clone.model.Content;
 import instagram_clone.repository.VoteRepository;
+import instagram_clone.repository.UserRepository;
+import instagram_clone.repository.ContentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,12 +17,35 @@ import java.util.Optional;
 @Service
 public class VoteService {
     private final VoteRepository voteRepository;
+    private final UserRepository userRepository;
+    private final ContentRepository contentRepository;
 
-    public VoteService(VoteRepository voteRepository) {
+    public VoteService(VoteRepository voteRepository, 
+                      UserRepository userRepository,
+                      ContentRepository contentRepository) {
         this.voteRepository = voteRepository;
+        this.userRepository = userRepository;
+        this.contentRepository = contentRepository;
     }
 
+    @Transactional
     public Vote save(Vote vote) {
+        // Validate user exists
+        User user = userRepository.findById(vote.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + vote.getUser().getId()));
+
+        // Validate content exists
+        Content content = contentRepository.findById(vote.getContent().getId())
+                .orElseThrow(() -> new RuntimeException("Content not found with id: " + vote.getContent().getId()));
+
+        // Check if vote already exists
+        Optional<Vote> existingVote = findByUserIdAndContentId(user.getId(), content.getId());
+        if (existingVote.isPresent()) {
+            throw new RuntimeException("Vote already exists for this user and content");
+        }
+
+        vote.setUser(user);
+        vote.setContent(content);
         vote.setDateTime(LocalDateTime.now());
         return this.voteRepository.save(vote);
     }
@@ -30,15 +58,25 @@ public class VoteService {
         return this.voteRepository.findAll();
     }
 
+    @Transactional
     public void deleteById(Long id) {
+        if (!this.voteRepository.existsById(id)) {
+            throw new RuntimeException("Vote not found with id: " + id);
+        }
         this.voteRepository.deleteById(id);
     }
 
     public List<Vote> findByUserId(Long userId) {
+        if (!this.userRepository.existsById(userId)) {
+            throw new RuntimeException("User not found with id: " + userId);
+        }
         return this.voteRepository.findByUserId(userId);
     }
 
     public List<Vote> findByContentId(Long contentId) {
+        if (!this.contentRepository.existsById(contentId)) {
+            throw new RuntimeException("Content not found with id: " + contentId);
+        }
         return this.voteRepository.findByContentId(contentId);
     }
 
@@ -46,7 +84,18 @@ public class VoteService {
         return this.voteRepository.findByUserIdAndContentId(userId, contentId);
     }
 
+    @Transactional
     public Vote updateVote(Long userId, Long contentId, VoteType newType) {
+        // Validate user exists
+        if (!this.userRepository.existsById(userId)) {
+            throw new RuntimeException("User not found with id: " + userId);
+        }
+
+        // Validate content exists
+        if (!this.contentRepository.existsById(contentId)) {
+            throw new RuntimeException("Content not found with id: " + contentId);
+        }
+
         Optional<Vote> existingVote = findByUserIdAndContentId(userId, contentId);
         if (existingVote.isPresent()) {
             Vote vote = existingVote.get();
@@ -54,6 +103,6 @@ public class VoteService {
             vote.setDateTime(LocalDateTime.now());
             return this.voteRepository.save(vote);
         }
-        return null;
+        throw new RuntimeException("Vote not found for user " + userId + " and content " + contentId);
     }
 } 
