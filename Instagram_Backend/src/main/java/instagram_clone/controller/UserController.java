@@ -33,10 +33,7 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
         try {
             UserDTO user = userService.login(loginDTO.getUsername(), loginDTO.getPassword());
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", "dummy-token");
-            response.put("user", user);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(user);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());

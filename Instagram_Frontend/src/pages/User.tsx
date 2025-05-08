@@ -1,25 +1,14 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Container } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/authService';
 import UserContent from '../components/UserContent';
 
 const User: React.FC = () => {
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [filterType, setFilterType] = useState<string>('All Posts');
   const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleFilterSelect = (filter: string) => {
-    setFilterType(filter);
-    handleMenuClose();
-  };
+  const [filterMenuAnchor, setFilterMenuAnchor] = useState<null | HTMLElement>(null);
 
   const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
     setProfileMenuAnchor(event.currentTarget);
@@ -29,27 +18,43 @@ const User: React.FC = () => {
     setProfileMenuAnchor(null);
   };
 
+  const handleFilterClick = (event: React.MouseEvent<HTMLElement>) => {
+    setFilterMenuAnchor(event.currentTarget);
+  };
+
+  const handleFilterMenuClose = () => {
+    setFilterMenuAnchor(null);
+  };
+
+  const handleFilterSelect = (filter: string) => {
+    setFilterType(filter);
+    handleFilterMenuClose();
+  };
+
   const handleProfileSelect = (action: string) => {
     handleProfileMenuClose();
     if (action === 'logout') {
-      localStorage.removeItem('token');
+      authService.logout();
       navigate('/login');
     } else if (action === 'profile') {
+      navigate('/profile');
     }
   };
 
   return (
-    <UserContent
-      filterType={filterType}
-      anchorEl={anchorEl}
-      profileMenuAnchor={profileMenuAnchor}
-      onMenuClick={handleMenuClick}
-      onMenuClose={handleMenuClose}
-      onFilterSelect={handleFilterSelect}
-      onProfileClick={handleProfileClick}
-      onProfileMenuClose={handleProfileMenuClose}
-      onProfileSelect={handleProfileSelect}
-    />
+    <Container>
+      <UserContent
+        filterType={filterType}
+        profileMenuAnchor={profileMenuAnchor}
+        filterMenuAnchor={filterMenuAnchor}
+        onProfileClick={handleProfileClick}
+        onProfileMenuClose={handleProfileMenuClose}
+        onFilterClick={handleFilterClick}
+        onFilterMenuClose={handleFilterMenuClose}
+        onFilterSelect={handleFilterSelect}
+        onProfileSelect={handleProfileSelect}
+      />
+    </Container>
   );
 };
 

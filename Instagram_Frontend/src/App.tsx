@@ -1,11 +1,13 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Start from './pages/Start';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import User from './pages/User';
+import Profile from './pages/Profile';
+import { authService } from './services/authService';
 
 const theme = createTheme({
   palette: {
@@ -19,6 +21,11 @@ const theme = createTheme({
   },
 });
 
+const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
+    const isAuthenticated = authService.isAuthenticated();
+    return isAuthenticated ? element : <Navigate to="/login" />;
+};
+
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
@@ -28,7 +35,9 @@ const App: React.FC = () => {
           <Route path="/" element={<Start />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/user" element={<User />} />
+          <Route path="/user" element={<PrivateRoute element={<User />} />} />
+          <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
+          <Route path="/" element={<Navigate to="/user" />} />
         </Routes>
       </Router>
     </ThemeProvider>

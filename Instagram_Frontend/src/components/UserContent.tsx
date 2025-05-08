@@ -13,25 +13,25 @@ import {
 
 interface UserContentProps {
   filterType: string;
-  anchorEl: HTMLElement | null;
   profileMenuAnchor: HTMLElement | null;
-  onMenuClick: (event: React.MouseEvent<HTMLElement>) => void;
-  onMenuClose: () => void;
-  onFilterSelect: (filter: string) => void;
+  filterMenuAnchor: HTMLElement | null;
   onProfileClick: (event: React.MouseEvent<HTMLElement>) => void;
   onProfileMenuClose: () => void;
+  onFilterClick: (event: React.MouseEvent<HTMLElement>) => void;
+  onFilterMenuClose: () => void;
+  onFilterSelect: (filter: string) => void;
   onProfileSelect: (action: string) => void;
 }
 
 const UserContent: React.FC<UserContentProps> = ({
   filterType,
-  anchorEl,
   profileMenuAnchor,
-  onMenuClick,
-  onMenuClose,
-  onFilterSelect,
+  filterMenuAnchor,
   onProfileClick,
   onProfileMenuClose,
+  onFilterClick,
+  onFilterMenuClose,
+  onFilterSelect,
   onProfileSelect,
 }) => {
   return (
@@ -61,14 +61,14 @@ const UserContent: React.FC<UserContentProps> = ({
 
           <Button
             variant="text"
-            onClick={onMenuClick}
+            onClick={onFilterClick}
           >
             Filter: {filterType}
           </Button>
           <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={onMenuClose}
+            anchorEl={filterMenuAnchor}
+            open={Boolean(filterMenuAnchor)}
+            onClose={onFilterMenuClose}
           >
             <MenuItem onClick={() => onFilterSelect('All Posts')}>All Posts</MenuItem>
             <MenuItem onClick={() => onFilterSelect('My Posts')}>My Posts</MenuItem>

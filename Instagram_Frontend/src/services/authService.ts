@@ -12,43 +12,75 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-  };
+  id: number;
+  username: string;
+  email: string;
 }
 
 class AuthService {
   async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/users/login', data);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    try {
+      console.log('Sending login request with data:', data);
+      const response = await api.post<AuthResponse>('/users/login', data);
+      console.log('Login response:', response);
+      
+      if (!response.data) {
+        console.error('No data in response');
+        throw new Error('Invalid response from server');
+      }
+      
+      if (!response.data.id) {
+        console.error('No id in response data:', response.data);
+        throw new Error('Invalid response from server');
+      }
+      
+      localStorage.setItem('userId', response.data.id.toString());
+      return response.data;
+    } catch (error: any) {
+      console.error('Login error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw new Error(error.response?.data?.message || 'Login failed. Please check your credentials.');
     }
-    return response.data;
   }
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/users/create', data);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    try {
+      console.log('Sending register request with data:', data);
+      const response = await api.post<AuthResponse>('/users/create', data);
+      console.log('Register response:', response);
+      
+      if (!response.data || !response.data.id) {
+        console.error('Invalid register response:', response);
+        throw new Error('Invalid response from server');
+      }
+      
+      localStorage.setItem('userId', response.data.id.toString());
+      return response.data;
+    } catch (error: any) {
+      console.error('Registration error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw new Error(error.response?.data?.message || 'Registration failed. Please try again.');
     }
-    return response.data;
   }
 
   logout(): void {
-    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
   }
 
-  getCurrentUser(): AuthResponse['user'] | null {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
+  getCurrentUser(): AuthResponse | null {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return null;
     return null;
   }
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('userId');
   }
 }
 
