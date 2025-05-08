@@ -1,5 +1,6 @@
 package instagram_clone.controller;
 
+import instagram_clone.dto.ContentCreateDTO;
 import instagram_clone.dto.ContentDTO;
 import instagram_clone.service.ContentService;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,8 @@ public class ContentController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ContentDTO> createContent(@RequestBody ContentDTO contentDTO) {
-        ContentDTO savedContent = this.contentService.create(contentDTO);
+    public ResponseEntity<ContentDTO> createContent(@RequestBody ContentCreateDTO contentCreateDTO) {
+        ContentDTO savedContent = this.contentService.create(contentCreateDTO);
         return ResponseEntity.ok(savedContent);
     }
 
