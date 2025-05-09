@@ -47,7 +47,7 @@ public class Content {
     private String text;
 
     @Lob
-    @Column(name = "image")
+    @Column(name = "image", columnDefinition = "LONGBLOB")
     private byte[] image;
 
     @Column(name = "date_time", nullable = false)

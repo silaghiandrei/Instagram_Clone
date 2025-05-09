@@ -11,8 +11,7 @@ const Profile: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         username: '',
-        email: '',
-        bio: ''
+        email: ''
     });
 
     useEffect(() => {
@@ -27,8 +26,7 @@ const Profile: React.FC = () => {
                 setUser(userData);
                 setFormData({
                     username: userData.username,
-                    email: userData.email,
-                    bio: userData.bio || ''
+                    email: userData.email
                 });
             } catch (error) {
                 console.error('Error fetching user profile:', error);

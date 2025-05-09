@@ -8,7 +8,6 @@ interface ProfileContentProps {
     formData: {
         username: string;
         email: string;
-        bio: string;
     };
     onEditClick: () => void;
     onCancelClick: () => void;
@@ -28,6 +27,11 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
     const handleEditClick = (e: React.MouseEvent) => {
         e.preventDefault();
         onEditClick();
+    };
+
+    const handleChangePassword = () => {
+        // TODO: Implement change password functionality
+        console.log('Change password clicked');
     };
 
     return (
@@ -84,28 +88,6 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 )}
                             </Grid>
                             <Grid item xs={12}>
-                                {isEditing ? (
-                                    <TextField
-                                        fullWidth
-                                        label="Bio"
-                                        name="bio"
-                                        multiline
-                                        rows={4}
-                                        value={formData.bio}
-                                        onChange={onChange}
-                                    />
-                                ) : (
-                                    <Box sx={{ p: 1 }}>
-                                        <Typography variant="subtitle2" color="text.secondary">
-                                            Bio
-                                        </Typography>
-                                        <Typography variant="body1">
-                                            {user.bio || 'No bio yet'}
-                                        </Typography>
-                                    </Box>
-                                )}
-                            </Grid>
-                            <Grid item xs={12}>
                                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
                                     {isEditing ? (
                                         <>
@@ -125,14 +107,24 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             </Button>
                                         </>
                                     ) : (
-                                        <Button
-                                            variant="contained"
-                                            onClick={handleEditClick}
-                                            type="button"
-                                            sx={{ minWidth: 120 }}
-                                        >
-                                            Edit Profile
-                                        </Button>
+                                        <>
+                                            <Button
+                                                variant="contained"
+                                                onClick={handleEditClick}
+                                                type="button"
+                                                sx={{ minWidth: 120 }}
+                                            >
+                                                Edit Profile
+                                            </Button>
+                                            <Button
+                                                variant="outlined"
+                                                onClick={handleChangePassword}
+                                                type="button"
+                                                sx={{ minWidth: 120 }}
+                                            >
+                                                Change Password
+                                            </Button>
+                                        </>
                                     )}
                                 </Box>
                             </Grid>

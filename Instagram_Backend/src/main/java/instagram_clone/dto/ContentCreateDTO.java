@@ -8,9 +8,12 @@ import lombok.Data;
 public class ContentCreateDTO {
     private String title;
     private String text;
-    private ContentType type;
+    private String type;
+    private boolean isCommentable;
     private Long authorId;
     private Long parentId;
-    private boolean isCommentable;
+    private byte[] image;
+    private String tags;
+    private ContentType contentType;
     private PostStatus status;
 } 

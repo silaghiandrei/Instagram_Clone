@@ -7,6 +7,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import User from './pages/User';
 import Profile from './pages/Profile';
+import CreatePost from './pages/CreatePost';
+import PostDetail from './pages/PostDetail';
+import UserPosts from './pages/UserPosts';
 import { authService } from './services/authService';
 
 const theme = createTheme({
@@ -21,9 +24,8 @@ const theme = createTheme({
   },
 });
 
-const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
-    const isAuthenticated = authService.isAuthenticated();
-    return isAuthenticated ? element : <Navigate to="/login" />;
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return authService.isAuthenticated() ? <>{children}</> : <Navigate to="/login" />;
 };
 
 const App: React.FC = () => {
@@ -35,8 +37,39 @@ const App: React.FC = () => {
           <Route path="/" element={<Start />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/user" element={<PrivateRoute element={<User />} />} />
-          <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
+          <Route
+            path="/user"
+            element={
+              <PrivateRoute>
+                <User />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/create-post"
+            element={
+              <PrivateRoute>
+                <CreatePost />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/post/:id"
+            element={
+              <PrivateRoute>
+                <PostDetail />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/my-posts" element={<UserPosts />} />
           <Route path="/" element={<Navigate to="/user" />} />
         </Routes>
       </Router>

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class ContentDTO {
+    private Long id;
     private User author;
     private ContentType type;
     private String title;

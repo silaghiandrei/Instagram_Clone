@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Container } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import UserContent from '../components/UserContent';
@@ -42,19 +41,17 @@ const User: React.FC = () => {
   };
 
   return (
-    <Container>
-      <UserContent
-        filterType={filterType}
-        profileMenuAnchor={profileMenuAnchor}
-        filterMenuAnchor={filterMenuAnchor}
-        onProfileClick={handleProfileClick}
-        onProfileMenuClose={handleProfileMenuClose}
-        onFilterClick={handleFilterClick}
-        onFilterMenuClose={handleFilterMenuClose}
-        onFilterSelect={handleFilterSelect}
-        onProfileSelect={handleProfileSelect}
-      />
-    </Container>
+    <UserContent
+      filterType={filterType}
+      profileMenuAnchor={profileMenuAnchor}
+      filterMenuAnchor={filterMenuAnchor}
+      onProfileClick={handleProfileClick}
+      onProfileMenuClose={handleProfileMenuClose}
+      onFilterClick={handleFilterClick}
+      onFilterMenuClose={handleFilterMenuClose}
+      onFilterSelect={handleFilterSelect}
+      onProfileSelect={handleProfileSelect}
+    />
   );
 };
 

@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Typography,
@@ -10,6 +11,10 @@ import {
   MenuItem,
   Avatar,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import PostCard from './PostCard';
+import { postService } from '../services/postService';
+import { Post } from '../types';
 
 interface UserContentProps {
   filterType: string;
@@ -34,12 +39,65 @@ const UserContent: React.FC<UserContentProps> = ({
   onFilterSelect,
   onProfileSelect,
 }) => {
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const fetchedPosts = await postService.getAllPosts();
+      console.log('Fetched posts:', fetchedPosts);
+      // Sort posts by dateTime in descending order (newest first)
+      const sortedPosts = fetchedPosts.sort((a, b) => {
+        const dateA = a.dateTime ? new Date(a.dateTime).getTime() : 0;
+        const dateB = b.dateTime ? new Date(b.dateTime).getTime() : 0;
+        return dateB - dateA;
+      });
+      setPosts(sortedPosts);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load posts');
+      console.error('Error fetching posts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVote = async (postId: number, voteType: 'up' | 'down') => {
+    try {
+      // TODO: Implement vote functionality
+      console.log(`Voting ${voteType} on post ${postId}`);
+    } catch (err) {
+      console.error('Error voting:', err);
+    }
+  };
+
+  const handleComment = async (postId: number, comment: string) => {
+    try {
+      // TODO: Implement comment functionality
+      console.log(`Commenting on post ${postId}: ${comment}`);
+    } catch (err) {
+      console.error('Error commenting:', err);
+    }
+  };
+
+  const handleLogout = () => {
+    // TODO: Implement logout functionality
+    console.log('Logging out');
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflow: 'hidden' }}>
       <AppBar position="static" color="default" elevation={0}>
-        <Toolbar>
+        <Toolbar sx={{ minHeight: 80, py: 2 }}>
           <Avatar
-            sx={{ width: 40, height: 40, mr: 2, cursor: 'pointer' }}
+            sx={{ width: 60, height: 60, mr: 2, cursor: 'pointer' }}
             onClick={onProfileClick}
           />
           <Menu
@@ -47,23 +105,23 @@ const UserContent: React.FC<UserContentProps> = ({
             open={Boolean(profileMenuAnchor)}
             onClose={onProfileMenuClose}
           >
-            <MenuItem onClick={() => onProfileSelect('profile')}>Profile</MenuItem>
-            <MenuItem onClick={() => onProfileSelect('logout')}>Log Out</MenuItem>
+            <MenuItem onClick={() => navigate('/profile')}>
+              Profile
+            </MenuItem>
+            <MenuItem onClick={() => navigate('/my-posts')}>
+              Posts
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              Log Out
+            </MenuItem>
           </Menu>
 
           <Button
             variant="text"
-            onClick={() => {}}
-            sx={{ mr: 'auto' }}
-          >
-            Create Post
-          </Button>
-
-          <Button
-            variant="text"
             onClick={onFilterClick}
+            sx={{ ml: 'auto' }}
           >
-            Filter: {filterType}
+            {filterType}
           </Button>
           <Menu
             anchorEl={filterMenuAnchor}
@@ -72,7 +130,7 @@ const UserContent: React.FC<UserContentProps> = ({
           >
             <MenuItem onClick={() => onFilterSelect('All Posts')}>All Posts</MenuItem>
             <MenuItem onClick={() => onFilterSelect('My Posts')}>My Posts</MenuItem>
-            <MenuItem onClick={() => onFilterSelect('By Tag')}>Filter by Tag</MenuItem>
+            <MenuItem onClick={() => onFilterSelect('By Tag')}>Search by Tag</MenuItem>
             <MenuItem onClick={() => onFilterSelect('By Title')}>Search by Title</MenuItem>
             <MenuItem onClick={() => onFilterSelect('By User')}>Search by User</MenuItem>
           </Menu>
@@ -86,25 +144,49 @@ const UserContent: React.FC<UserContentProps> = ({
           py: 3,
           display: 'flex',
           flexDirection: 'column',
-          gap: 2
+          gap: 2,
+          overflow: 'auto'
         }}
       >
-        <Typography variant="h5">
-          Your Posts
-        </Typography>
-
-        <Paper 
-          elevation={0}
-          sx={{ 
-            p: 3, 
-            textAlign: 'center',
-            border: '1px solid #e0e0e0'
-          }}
-        >
-          <Typography variant="body1" color="text.secondary">
-            Posts will be displayed here
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5">
+            {filterType}
           </Typography>
-        </Paper>
+          <Button
+            variant="contained"
+            onClick={() => navigate('/create-post')}
+          >
+            Create Post
+          </Button>
+        </Box>
+
+        {loading ? (
+          <Typography>Loading posts...</Typography>
+        ) : error ? (
+          <Typography color="error">{error}</Typography>
+        ) : posts.length === 0 ? (
+          <Paper 
+            elevation={0}
+            sx={{ 
+              p: 3, 
+              textAlign: 'center',
+              border: '1px solid #e0e0e0'
+            }}
+          >
+            <Typography variant="body1" color="text.secondary">
+              No posts found
+            </Typography>
+          </Paper>
+        ) : (
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onVote={handleVote}
+              onComment={handleComment}
+            />
+          ))
+        )}
       </Container>
 
       <Paper 
@@ -120,11 +202,7 @@ const UserContent: React.FC<UserContentProps> = ({
           justifyContent: 'center'
         }} 
         elevation={0}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Bottom Navigation
-        </Typography>
-      </Paper>
+      />
     </Box>
   );
 };

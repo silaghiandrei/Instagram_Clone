@@ -35,6 +35,8 @@ class AuthService {
       }
       
       localStorage.setItem('userId', response.data.id.toString());
+      localStorage.setItem('username', response.data.username);
+      localStorage.setItem('email', response.data.email);
       return response.data;
     } catch (error: any) {
       console.error('Login error details:', {
@@ -58,6 +60,8 @@ class AuthService {
       }
       
       localStorage.setItem('userId', response.data.id.toString());
+      localStorage.setItem('username', response.data.username);
+      localStorage.setItem('email', response.data.email);
       return response.data;
     } catch (error: any) {
       console.error('Registration error details:', {
@@ -71,12 +75,22 @@ class AuthService {
 
   logout(): void {
     localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('email');
   }
 
   getCurrentUser(): AuthResponse | null {
     const userId = localStorage.getItem('userId');
-    if (!userId) return null;
-    return null;
+    const username = localStorage.getItem('username');
+    const email = localStorage.getItem('email');
+    
+    if (!userId || !username || !email) return null;
+    
+    return {
+      id: parseInt(userId),
+      username,
+      email
+    };
   }
 
   isAuthenticated(): boolean {
