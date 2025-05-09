@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Grid, Box } from '@mui/material';
+import { Container, Typography, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { postService } from '../services/postService';
 import { Post } from '../types';
@@ -48,12 +48,23 @@ const UserPosts: React.FC = () => {
         }
     };
 
+    const handleDeleteClick = async (postId: number) => {
+        if (window.confirm('Are you sure you want to delete this post?')) {
+            try {
+                await postService.deletePost(postId);
+                setPosts(posts.filter(post => post.id !== postId));
+            } catch (error) {
+                console.error('Error deleting post:', error);
+            }
+        }
+    };
+
     if (loading) {
         return <Typography>Loading...</Typography>;
     }
 
     return (
-        <Container>
+        <Container maxWidth="md">
             <Box sx={{ mt: 4, mb: 4 }}>
                 <Typography variant="h4" gutterBottom>
                     My Posts
@@ -61,17 +72,19 @@ const UserPosts: React.FC = () => {
                 {posts.length === 0 ? (
                     <Typography>You haven't created any posts yet.</Typography>
                 ) : (
-                    <Grid container spacing={3}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         {posts.map((post) => (
-                            <Grid item xs={12} sm={6} md={4} key={post.id}>
+                            <Box key={post.id}>
                                 <PostCard 
                                     post={post} 
                                     onVote={handleVote}
                                     onComment={handleComment}
+                                    onDelete={handleDeleteClick}
+                                    showActions={true}
                                 />
-                            </Grid>
+                            </Box>
                         ))}
-                    </Grid>
+                    </Box>
                 )}
             </Box>
         </Container>

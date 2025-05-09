@@ -17,9 +17,17 @@ interface PostCardProps {
   post: Post;
   onVote: (postId: number, voteType: 'up' | 'down') => void;
   onComment: (postId: number, comment: string) => void;
+  onDelete?: (postId: number) => void;
+  showActions?: boolean;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, onVote, onComment }) => {
+const PostCard: React.FC<PostCardProps> = ({ 
+  post, 
+  onVote, 
+  onComment,
+  onDelete,
+  showActions = false
+}) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -115,25 +123,52 @@ const PostCard: React.FC<PostCardProps> = ({ post, onVote, onComment }) => {
           sx={{ 
             display: 'flex', 
             alignItems: 'center', 
-            gap: 2, 
+            justifyContent: 'space-between',
             mb: 2 
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Button 
-            variant="outlined" 
-            size="small"
-            onClick={() => onVote(post.id!, 'up')}
-          >
-            Upvote
-          </Button>
-          <Button 
-            variant="outlined" 
-            size="small"
-            onClick={() => onVote(post.id!, 'down')}
-          >
-            Downvote
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button 
+              variant="outlined" 
+              size="small"
+              onClick={() => onVote(post.id!, 'up')}
+            >
+              Upvote
+            </Button>
+            <Button 
+              variant="outlined" 
+              size="small"
+              onClick={() => onVote(post.id!, 'down')}
+            >
+              Downvote
+            </Button>
+            <Typography variant="body1" sx={{ minWidth: '2rem', textAlign: 'center' }}>
+              0
+            </Typography>
+          </Box>
+          {showActions && (
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button 
+                variant="outlined" 
+                color="primary" 
+                size="small"
+                disabled
+              >
+                Edit
+              </Button>
+              {onDelete && (
+                <Button 
+                  variant="outlined" 
+                  color="error" 
+                  size="small"
+                  onClick={() => onDelete(post.id)}
+                >
+                  Delete
+                </Button>
+              )}
+            </Box>
+          )}
         </Box>
       </CardContent>
     </Card>

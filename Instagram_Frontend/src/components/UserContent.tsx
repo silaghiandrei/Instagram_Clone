@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import PostCard from './PostCard';
 import { postService } from '../services/postService';
+import { authService } from '../services/authService';
 import { Post } from '../types';
 
 interface UserContentProps {
@@ -88,8 +89,8 @@ const UserContent: React.FC<UserContentProps> = ({
   };
 
   const handleLogout = () => {
-    // TODO: Implement logout functionality
-    console.log('Logging out');
+    authService.logout();
+    navigate('/login');
   };
 
   return (
