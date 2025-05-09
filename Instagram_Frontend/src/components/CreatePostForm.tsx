@@ -18,7 +18,7 @@ import {
 import AddIcon from '@mui/material/Icon';
 import CloseIcon from '@mui/material/Icon';
 import ImageIcon from '@mui/material/Icon';
-import { Tag } from '../services/tagService';
+import { Tag } from '../types';
 
 interface CreatePostFormProps {
   title: string;

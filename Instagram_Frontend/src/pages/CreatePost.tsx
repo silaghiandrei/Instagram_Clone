@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Alert, Snackbar } from '@mui/material';
 import CreatePostForm from '../components/CreatePostForm';
 import { postService } from '../services/postService';
-import { tagService, Tag } from '../services/tagService';
+import { tagService } from '../services/tagService';
+import { Tag } from '../types';
 import { authService } from '../services/authService';
 
 const CreatePost: React.FC = () => {

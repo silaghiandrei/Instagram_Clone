@@ -1,8 +1,5 @@
 import api from './api';
-
-export interface Tag {
-  name: string;
-}
+import { Tag } from '../types';
 
 class TagService {
   async getAllTags(): Promise<Tag[]> {

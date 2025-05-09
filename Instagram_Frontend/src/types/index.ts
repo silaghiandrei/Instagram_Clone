@@ -31,10 +31,31 @@ export interface Post {
   type: 'POST' | 'COMMENT';
   title: string;
   text: string;
-  image?: string; // Base64 string for image
+  image?: string;
   dateTime?: string;
   status?: 'ACTIVE' | 'ARCHIVED' | 'DELETED';
   isCommentable: boolean;
   tags?: string[];
-  parent?: Post; // For comments, this will be the parent post
+  parent?: Post;
+}
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  id: number;
+  username: string;
+  email: string;
+}
+
+export interface Tag {
+  name: string;
 } 
