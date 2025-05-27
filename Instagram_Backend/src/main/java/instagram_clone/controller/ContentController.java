@@ -2,9 +2,12 @@ package instagram_clone.controller;
 
 import instagram_clone.dto.ContentCreateDTO;
 import instagram_clone.dto.ContentDTO;
+import instagram_clone.model.ContentType;
+import instagram_clone.model.PostStatus;
 import instagram_clone.service.ContentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,10 +20,39 @@ public class ContentController {
         this.contentService = contentService;
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<ContentDTO> createContent(@RequestBody ContentCreateDTO contentCreateDTO) {
-        ContentDTO savedContent = this.contentService.create(contentCreateDTO);
-        return ResponseEntity.ok(savedContent);
+    @PostMapping(value = "/create", consumes = "multipart/form-data")
+    public ResponseEntity<ContentDTO> createContent(
+            @RequestParam("title") String title,
+            @RequestParam("text") String text,
+            @RequestParam("type") String type,
+            @RequestParam("isCommentable") boolean isCommentable,
+            @RequestParam("authorId") Long authorId,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "tags", required = false) String tags) {
+        
+        try {
+            ContentCreateDTO contentCreateDTO = new ContentCreateDTO();
+            contentCreateDTO.setTitle(title);
+            contentCreateDTO.setText(text);
+            contentCreateDTO.setType(type);
+            contentCreateDTO.setCommentable(isCommentable);
+            contentCreateDTO.setAuthorId(authorId);
+            contentCreateDTO.setContentType(ContentType.valueOf(type));
+            contentCreateDTO.setStatus(PostStatus.ACTIVE);
+            
+            if (image != null && !image.isEmpty()) {
+                contentCreateDTO.setImage(image.getBytes());
+            }
+            
+            if (tags != null && !tags.isEmpty()) {
+                contentCreateDTO.setTags(tags);
+            }
+            
+            ContentDTO savedContent = this.contentService.create(contentCreateDTO);
+            return ResponseEntity.ok(savedContent);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create content: " + e.getMessage(), e);
+        }
     }
 
     @GetMapping("/get/{id}")

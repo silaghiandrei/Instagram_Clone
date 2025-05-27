@@ -9,6 +9,7 @@ public class ContentConverter {
 
     public static ContentDTO toDTO(Content content) {
         ContentDTO dto = new ContentDTO();
+        dto.setId(content.getId());
         
         User author = content.getAuthor();
         if (author != null) {

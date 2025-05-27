@@ -11,3 +11,7 @@
 /Instagram_Frontend/node_modules/
 .idea
 Instagram_Backend/src/main/resources/postman/
+Instagram_Frontend/node_modules
+Instagram_Frontend/cypress/
+Instagram_Frontend/jest.config.js
+Instagram_Frontend/cypress.config.ts
