@@ -7,6 +7,8 @@ import instagram_clone.model.User;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class ContentDTO {
@@ -20,4 +22,5 @@ public class ContentDTO {
     private PostStatus status;
     private Content parent;
     private boolean isCommentable;
+    private Set<TagDTO> tags = new HashSet<>();
 }

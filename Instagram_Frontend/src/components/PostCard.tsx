@@ -109,7 +109,7 @@ const PostCard: React.FC<PostCardProps> = ({
           {post.tags?.map((tag, index) => (
             <Chip 
               key={index} 
-              label={tag} 
+              label={tag.name} 
               size="small" 
               variant="outlined"
               color="primary"

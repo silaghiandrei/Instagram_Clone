@@ -35,7 +35,7 @@ export interface Post {
   dateTime?: string;
   status?: 'ACTIVE' | 'ARCHIVED' | 'DELETED';
   isCommentable: boolean;
-  tags?: string[];
+  tags?: Tag[];
   parent?: Post;
 }
 

@@ -1,9 +1,13 @@
 package instagram_clone.dtoconverter;
 
 import instagram_clone.dto.ContentDTO;
+import instagram_clone.dto.TagDTO;
 import instagram_clone.model.Content;
 import instagram_clone.model.ContentType;
 import instagram_clone.model.User;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class ContentConverter {
 
@@ -41,6 +45,16 @@ public class ContentConverter {
         } else {
             dto.setParent(null);
         }
+
+        Set<TagDTO> tagDTOs = new HashSet<>();
+        if (content.getTags() != null) {
+            content.getTags().forEach(tag -> {
+                TagDTO tagDTO = new TagDTO();
+                tagDTO.setName(tag.getName());
+                tagDTOs.add(tagDTO);
+            });
+        }
+        dto.setTags(tagDTOs);
 
         return dto;
     }

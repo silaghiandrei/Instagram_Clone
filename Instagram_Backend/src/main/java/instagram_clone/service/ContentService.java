@@ -9,6 +9,7 @@ import instagram_clone.model.ContentType;
 import instagram_clone.model.User;
 import instagram_clone.repository.ContentRepository;
 import instagram_clone.repository.UserRepository;
+import instagram_clone.repository.TagRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +21,16 @@ public class ContentService {
     private final ContentRepository contentRepository;
     private final UserRepository userRepository;
     private final ContentCreateConverter contentCreateConverter;
+    private final TagRepository tagRepository;
 
     public ContentService(ContentRepository contentRepository, 
                          UserRepository userRepository,
-                         ContentCreateConverter contentCreateConverter) {
+                         ContentCreateConverter contentCreateConverter,
+                         TagRepository tagRepository) {
         this.contentRepository = contentRepository;
         this.userRepository = userRepository;
         this.contentCreateConverter = contentCreateConverter;
+        this.tagRepository = tagRepository;
     }
 
     @Transactional
@@ -72,8 +76,11 @@ public class ContentService {
         return ContentConverter.toDTO(updatedContent);
     }
 
+    @Transactional(readOnly = true)
     public ContentDTO findById(Long id) {
-        return ContentConverter.toDTO(this.contentRepository.findById(id).orElseThrow());
+        Content content = this.contentRepository.findById(id).orElseThrow();
+        fetchTagsForPost(content);
+        return ContentConverter.toDTO(content);
     }
 
     public void deleteById(Long id) {
@@ -90,8 +97,23 @@ public class ContentService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<ContentDTO> findAllPosts() {
-        return this.contentRepository.findByType(ContentType.POST).stream().map(ContentConverter::toDTO).collect(Collectors.toList());
+        List<Content> posts = this.contentRepository.findByType(ContentType.POST);
+        posts.forEach(this::fetchTagsForPost);
+        return posts.stream()
+            .map(ContentConverter::toDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    private void fetchTagsForPost(Content post) {
+        List<Object[]> tagResults = contentRepository.findTagsForPost(post.getId());
+        post.getTags().clear();
+        tagResults.forEach(tagResult -> {
+            String tagName = (String) tagResult[0];
+            post.getTags().add(tagRepository.findByName(tagName).orElse(null));
+        });
     }
 
     public List<ContentDTO> findAllCommentsByParentId(Long parentId) {
