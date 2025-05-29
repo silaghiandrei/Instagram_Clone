@@ -3,25 +3,44 @@ import { Post } from '../types';
 
 class PostService {
   async createPost(formData: FormData) {
-    const response = await api.post<Post>('/contents/create', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.post<Post>('/contents/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        // Clear any invalid tokens
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      throw error;
+    }
   }
 
   async createComment(postId: number, formData: FormData) {
-    formData.append('type', 'COMMENT');
-    formData.append('parentId', postId.toString());
-    formData.append('isCommentable', 'false');
-    
-    const response = await api.post<Post>('/contents/create', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    try {
+      formData.append('type', 'COMMENT');
+      formData.append('parentId', postId.toString());
+      formData.append('isCommentable', 'false');
+      
+      const response = await api.post<Post>('/contents/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      throw error;
+    }
   }
 
   async getAllPosts() {

@@ -5,6 +5,7 @@ import instagram_clone.dto.TagDTO;
 import instagram_clone.model.Content;
 import instagram_clone.model.ContentType;
 import instagram_clone.model.User;
+import instagram_clone.model.PostStatus;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -75,7 +76,13 @@ public class ContentConverter {
         
         // Convert status string to enum if needed
         if (dto.getStatus() != null) {
-            content.setStatus(dto.getStatus());
+            try {
+                PostStatus status = PostStatus.valueOf(dto.getStatus().name());
+                content.setStatus(status);
+            } catch (IllegalArgumentException e) {
+                // If invalid status, default to JUST_POSTED
+                content.setStatus(PostStatus.JUST_POSTED);
+            }
         }
         
         content.setCommentable(dto.isCommentable());

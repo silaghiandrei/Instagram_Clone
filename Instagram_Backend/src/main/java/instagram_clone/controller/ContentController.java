@@ -28,30 +28,53 @@ public class ContentController {
             @RequestParam("type") String type,
             @RequestParam("isCommentable") boolean isCommentable,
             @RequestParam("authorId") Long authorId,
+            @RequestParam(value = "parentId", required = false) Long parentId,
             @RequestParam(value = "image", required = false) MultipartFile image,
-            @RequestParam(value = "tags", required = false) String tags) {
+            @RequestParam(value = "tags", required = false) String tags,
+            @RequestParam(value = "status", required = false) String status) {
         
         try {
+            System.out.println("Received type: " + type);
+            System.out.println("Received status: " + status);
             ContentCreateDTO contentCreateDTO = new ContentCreateDTO();
             contentCreateDTO.setTitle(title);
             contentCreateDTO.setText(text);
-            contentCreateDTO.setType(type);
             contentCreateDTO.setCommentable(isCommentable);
             contentCreateDTO.setAuthorId(authorId);
+            contentCreateDTO.setParentId(parentId);
             contentCreateDTO.setContentType(ContentType.valueOf(type));
-            contentCreateDTO.setStatus(PostStatus.ACTIVE);
+            
+            if (status != null) {
+                try {
+                    PostStatus postStatus = PostStatus.valueOf(status);
+                    System.out.println("Converted status to enum: " + postStatus);
+                    contentCreateDTO.setStatus(postStatus);
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Failed to convert status: " + status);
+                    e.printStackTrace();
+                }
+            }
+            
+            System.out.println("ContentType: " + contentCreateDTO.getContentType());
+            System.out.println("Final status in DTO: " + contentCreateDTO.getStatus());
             
             if (image != null && !image.isEmpty()) {
                 contentCreateDTO.setImage(image.getBytes());
             }
             
             if (tags != null && !tags.isEmpty()) {
+                System.out.println("Received tags: " + tags);
                 contentCreateDTO.setTags(tags);
+            } else {
+                System.out.println("No tags received in request");
+                contentCreateDTO.setTags("[]"); // Set empty array as default
             }
             
             ContentDTO savedContent = this.contentService.create(contentCreateDTO);
             return ResponseEntity.ok(savedContent);
         } catch (Exception e) {
+            System.err.println("Error creating content: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Failed to create content: " + e.getMessage(), e);
         }
     }
@@ -100,5 +123,18 @@ public class ContentController {
     public ResponseEntity<Void> deleteContent(@PathVariable Long id) {
         this.contentService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/update-status/{id}")
+    public ResponseEntity<ContentDTO> updatePostStatus(
+            @PathVariable Long id,
+            @RequestParam("status") String status) {
+        try {
+            PostStatus newStatus = PostStatus.valueOf(status);
+            ContentDTO updatedContent = this.contentService.updatePostStatus(id, newStatus);
+            return ResponseEntity.ok(updatedContent);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status: " + status);
+        }
     }
 }

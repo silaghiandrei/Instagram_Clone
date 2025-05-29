@@ -8,7 +8,6 @@ import lombok.Data;
 public class ContentCreateDTO {
     private String title;
     private String text;
-    private String type;
     private boolean isCommentable;
     private Long authorId;
     private Long parentId;

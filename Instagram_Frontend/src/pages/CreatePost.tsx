@@ -23,8 +23,17 @@ const CreatePost: React.FC = () => {
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const currentUser = await authService.getCurrentUser();
+      if (!currentUser) {
+        setError('You must be logged in to create a post');
+        setShowError(true);
+        navigate('/login');
+      }
+    };
+    checkAuth();
     fetchTags();
-  }, []);
+  }, [navigate]);
 
   const fetchTags = async () => {
     try {
@@ -68,29 +77,43 @@ const CreatePost: React.FC = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
+      const currentUser = await authService.getCurrentUser();
+      if (!currentUser) {
+        setError('You must be logged in to create a post');
+        setShowError(true);
+        navigate('/login');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('title', title);
       formData.append('text', content);
       formData.append('type', 'POST');
       formData.append('isCommentable', 'true');
-      
-      const currentUser = await authService.getCurrentUser();
-      if (!currentUser) {
-        throw new Error('User not authenticated');
-      }
-      
+      formData.append('status', 'JUST_POSTED');
       formData.append('authorId', currentUser.id.toString());
-      formData.append('tags', JSON.stringify(tags.map(tag => tag.name)));
       
+      if (tags && tags.length > 0) {
+        formData.append('tags', JSON.stringify(tags.map(tag => tag.name)));
+      }
+
       if (image) {
         formData.append('image', image);
       }
 
-      await postService.createPost(formData);
-      navigate('/');
-    } catch (error) {
+      const createdPost = await postService.createPost(formData);
+      if (createdPost) {
+        navigate('/user');  // Navigate to user posts page instead of home
+      }
+    } catch (error: any) {
       console.error('Error creating post:', error);
-      setError('Failed to create post. Please try again.');
+      if (error.message.includes('session has expired') || error.response?.status === 401) {
+        setError('Your session has expired. Please log in again.');
+        navigate('/login');
+      } else {
+        setError('Failed to create post. Please try again.');
+      }
+      setShowError(true);
     } finally {
       setIsSubmitting(false);
     }
