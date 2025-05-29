@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Typography,
@@ -12,37 +12,85 @@ import {
   Card,
   CardContent,
   CardMedia,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { Post } from '../types';
 import PostCard from './PostCard';
+import { authService } from '../services/authService';
 
 interface PostDetailContentProps {
   post: Post;
   comments: Post[];
   comment: string;
+  commentTitle: string;
   commentImagePreview: string;
   error: string | null;
   onCommentChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCommentTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCommentImageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCommentSubmit: (e: React.FormEvent) => void;
   onBackClick: () => void;
   formatDate: (dateString?: string) => string;
   onClearImage: () => void;
+  onEditComment?: (commentId: number, title: string, text: string) => Promise<void>;
+  onDeleteComment?: (commentId: number) => Promise<void>;
 }
 
 const PostDetailContent: React.FC<PostDetailContentProps> = ({
   post,
   comments,
   comment,
+  commentTitle,
   commentImagePreview,
   error,
   onCommentChange,
+  onCommentTitleChange,
   onCommentImageChange,
   onCommentSubmit,
   onBackClick,
   formatDate,
   onClearImage,
+  onEditComment,
+  onDeleteComment,
 }) => {
+  const [editingComment, setEditingComment] = useState<Post | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editText, setEditText] = useState('');
+  const [currentUser, setCurrentUser] = useState<{ id: number } | null>(null);
+
+  React.useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
+    };
+    fetchCurrentUser();
+  }, []);
+
+  const handleEditClick = (comment: Post) => {
+    setEditingComment(comment);
+    setEditTitle(comment.title);
+    setEditText(comment.text);
+  };
+
+  const handleEditSubmit = async () => {
+    if (editingComment && onEditComment) {
+      await onEditComment(editingComment.id, editTitle, editText);
+      setEditingComment(null);
+    }
+  };
+
+  const handleDeleteClick = async (commentId: number) => {
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      if (onDeleteComment) {
+        await onDeleteComment(commentId);
+      }
+    }
+  };
+
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
       <Button
@@ -70,6 +118,14 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
             <Divider sx={{ mb: 3 }} />
 
             <form onSubmit={onCommentSubmit}>
+              <TextField
+                fullWidth
+                label="Title"
+                value={commentTitle}
+                onChange={onCommentTitleChange}
+                sx={{ mb: 2 }}
+                required
+              />
               <TextField
                 fullWidth
                 multiline
@@ -141,17 +197,39 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                     <CardContent>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                         <Avatar sx={{ mr: 2 }}>
-                          {comment.author.username[0].toUpperCase()}
+                          {comment.author?.username?.[0]?.toUpperCase() || '?'}
                         </Avatar>
-                        <Box>
+                        <Box sx={{ flexGrow: 1 }}>
                           <Typography variant="subtitle2">
-                            {comment.author.username}
+                            {comment.author?.username || 'Unknown User'}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             {formatDate(comment.dateTime)}
                           </Typography>
                         </Box>
+                        {currentUser && comment.author?.id === currentUser.id && (
+                          <Box>
+                            <Button
+                              size="small"
+                              onClick={() => handleEditClick(comment)}
+                              sx={{ mr: 1 }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteClick(comment.id)}
+                            >
+                              Delete
+                            </Button>
+                          </Box>
+                        )}
                       </Box>
+
+                      <Typography variant="h6" gutterBottom>
+                        {comment.title}
+                      </Typography>
 
                       <Typography variant="body1" paragraph>
                         {comment.text}
@@ -166,6 +244,35 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                           sx={{ objectFit: 'contain', mb: 2 }}
                         />
                       )}
+
+                      <Box 
+                        sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          mt: 2 
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                          <Button 
+                            variant="outlined" 
+                            size="small"
+                            onClick={() => {}}
+                          >
+                            Upvote
+                          </Button>
+                          <Button 
+                            variant="outlined" 
+                            size="small"
+                            onClick={() => {}}
+                          >
+                            Downvote
+                          </Button>
+                          <Typography variant="body1" sx={{ minWidth: '2rem', textAlign: 'center' }}>
+                            0
+                          </Typography>
+                        </Box>
+                      </Box>
                     </CardContent>
                   </Card>
                 ))
@@ -174,6 +281,42 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
           </Paper>
         </Box>
       )}
+
+      <Dialog open={!!editingComment} onClose={() => setEditingComment(null)} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit Comment</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField
+              label="Title"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Content"
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              fullWidth
+              required
+              multiline
+              rows={4}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditingComment(null)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleEditSubmit}
+            variant="contained"
+            disabled={!editTitle || !editText}
+          >
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

@@ -142,14 +142,18 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({
                 />
               )}
               renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    label={option.name}
-                    {...getTagProps({ index })}
-                    color="primary"
-                    variant="outlined"
-                  />
-                ))
+                value.map((option, index) => {
+                  const { key, ...chipProps } = getTagProps({ index });
+                  return (
+                    <Chip
+                      key={key}
+                      label={option.name}
+                      {...chipProps}
+                      color="primary"
+                      variant="outlined"
+                    />
+                  );
+                })
               }
             />
           </Box>

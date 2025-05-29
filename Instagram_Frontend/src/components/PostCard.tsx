@@ -190,12 +190,12 @@ const PostCard: React.FC<PostCardProps> = ({
 
 const getStatusColor = (status?: string) => {
   switch (status) {
-    case 'ACTIVE':
+    case 'JUST_POSTED':
+      return 'info';
+    case 'FIRST_REACTIONS':
       return 'success';
-    case 'ARCHIVED':
+    case 'OUTDATED':
       return 'warning';
-    case 'DELETED':
-      return 'error';
     default:
       return 'default';
   }
