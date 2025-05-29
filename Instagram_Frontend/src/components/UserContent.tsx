@@ -170,8 +170,23 @@ const UserContent: React.FC<UserContentProps> = ({
 
   const handleVote = async (postId: number, voteType: 'up' | 'down') => {
     try {
-      // TODO: Implement vote functionality
-      console.log(`Voting ${voteType} on post ${postId}`);
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      const voteTypeEnum = voteType === 'up' ? 'UPVOTE' : 'DOWN_VOTE';
+      const updatedPost = await postService.votePost(postId, parseInt(userId), voteTypeEnum);
+      
+      // Update the posts list with the new vote counts
+      setPosts(posts.map(post => 
+        post.id === postId ? {
+          ...post,
+          upvotes: updatedPost.upvotes,
+          downvotes: updatedPost.downvotes
+        } : post
+      ));
     } catch (err) {
       console.error('Error voting:', err);
     }

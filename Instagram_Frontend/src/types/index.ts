@@ -40,6 +40,8 @@ export interface Post {
   isCommentable: boolean;
   tags?: Tag[];
   parent?: Post;
+  upvotes?: number;
+  downvotes?: number;
 }
 
 export interface LoginRequest {

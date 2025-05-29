@@ -149,6 +149,30 @@ const PostDetail: React.FC = () => {
     }
   };
 
+  const handleVote = async (postId: number, voteType: 'up' | 'down') => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      const voteTypeEnum = voteType === 'up' ? 'UPVOTE' : 'DOWN_VOTE';
+      const updatedPost = await postService.votePost(postId, parseInt(userId), voteTypeEnum);
+      
+      if (post && postId === post.id) {
+        setPost(updatedPost);
+      } else {
+        setComments(comments.map(comment => 
+          comment.id === postId ? updatedPost : comment
+        ));
+      }
+    } catch (error) {
+      setError('Failed to process vote. Please try again.');
+      setShowError(true);
+    }
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     try {
@@ -196,6 +220,7 @@ const PostDetail: React.FC = () => {
         }}
         onEditComment={handleEditComment}
         onDeleteComment={handleDeleteComment}
+        onVote={handleVote}
       />
       <Snackbar 
         open={showError} 

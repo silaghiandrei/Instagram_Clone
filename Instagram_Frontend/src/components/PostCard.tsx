@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -12,6 +12,20 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Post } from '../types';
+import { authService } from '../services/authService';
+
+const getStatusColor = (status?: string) => {
+  switch (status) {
+    case 'JUST_POSTED':
+      return 'info';
+    case 'FIRST_REACTIONS':
+      return 'success';
+    case 'OUTDATED':
+      return 'warning';
+    default:
+      return 'default';
+  }
+};
 
 interface PostCardProps {
   post: Post;
@@ -33,6 +47,19 @@ const PostCard: React.FC<PostCardProps> = ({
   showActions = false
 }) => {
   const navigate = useNavigate();
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        setCurrentUserId(user?.id || null);
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
 
   const handleCardClick = () => {
     if (!post.id) {
@@ -59,6 +86,8 @@ const PostCard: React.FC<PostCardProps> = ({
       return dateString;
     }
   };
+
+  const isAuthor = currentUserId === post.author.id;
 
   return (
     <Card 
@@ -138,23 +167,54 @@ const PostCard: React.FC<PostCardProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Button 
-              variant="outlined" 
-              size="small"
-              onClick={() => onVote(post.id!, 'up')}
-            >
-              Upvote
-            </Button>
-            <Button 
-              variant="outlined" 
-              size="small"
-              onClick={() => onVote(post.id!, 'down')}
-            >
-              Downvote
-            </Button>
-            <Typography variant="body1" sx={{ minWidth: '2rem', textAlign: 'center' }}>
-              0
-            </Typography>
+            {!isAuthor && (
+              <>
+                <Button 
+                  variant="outlined" 
+                  size="small"
+                  onClick={() => onVote(post.id!, 'up')}
+                >
+                  Upvote
+                </Button>
+                <Typography variant="body2" color="text.secondary">
+                  {post.upvotes || 0}
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  size="small"
+                  onClick={() => onVote(post.id!, 'down')}
+                >
+                  Downvote
+                </Button>
+                <Typography variant="body2" color="text.secondary">
+                  {post.downvotes || 0}
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  color={(post.upvotes || 0) - (post.downvotes || 0) >= 0 ? 'success.main' : 'error.main'}
+                  sx={{ ml: 1, fontWeight: 'bold' }}
+                >
+                  {`${(post.upvotes || 0) - (post.downvotes || 0)} votes`}
+                </Typography>
+              </>
+            )}
+            {isAuthor && (
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Typography variant="body2" color="success.main">
+                  {`${post.upvotes || 0} upvotes`}
+                </Typography>
+                <Typography variant="body2" color="error.main">
+                  {`${post.downvotes || 0} downvotes`}
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  color={(post.upvotes || 0) - (post.downvotes || 0) >= 0 ? 'success.main' : 'error.main'}
+                  sx={{ fontWeight: 'bold' }}
+                >
+                  {`• ${(post.upvotes || 0) - (post.downvotes || 0)} total`}
+                </Typography>
+              </Box>
+            )}
           </Box>
           {showActions && (
             <Box sx={{ display: 'flex', gap: 2 }}>
@@ -201,19 +261,6 @@ const PostCard: React.FC<PostCardProps> = ({
       </CardContent>
     </Card>
   );
-};
-
-const getStatusColor = (status?: string) => {
-  switch (status) {
-    case 'JUST_POSTED':
-      return 'info';
-    case 'FIRST_REACTIONS':
-      return 'success';
-    case 'OUTDATED':
-      return 'warning';
-    default:
-      return 'default';
-  }
 };
 
 export default PostCard; 

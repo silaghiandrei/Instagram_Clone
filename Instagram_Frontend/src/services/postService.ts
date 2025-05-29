@@ -104,6 +104,43 @@ class PostService {
   async deletePost(postId: number) {
     await api.delete(`/contents/delete/${postId}`);
   }
+
+  async votePost(postId: number, userId: number, voteType: 'UPVOTE' | 'DOWN_VOTE'): Promise<Post> {
+    try {
+      const response = await api.post<Post>(`/contents/${postId}/vote`, null, {
+        params: {
+          userId,
+          voteType
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      throw error;
+    }
+  }
+
+  async removeVote(postId: number, userId: number): Promise<Post> {
+    try {
+      const response = await api.delete<Post>(`/contents/${postId}/vote`, {
+        params: {
+          userId
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      throw error;
+    }
+  }
 }
 
 export const postService = new PostService(); 
