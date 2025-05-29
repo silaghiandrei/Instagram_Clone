@@ -68,7 +68,7 @@ public class Content {
     @OneToMany(mappedBy = "parent", cascade = {CascadeType.ALL})
     private List<Content> children = new ArrayList<>();
 
-    @OneToMany(mappedBy = "content", cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "content", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<Vote> votes = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)

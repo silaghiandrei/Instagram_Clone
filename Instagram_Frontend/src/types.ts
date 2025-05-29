@@ -20,6 +20,8 @@ export interface Post {
   tags?: Tag[];
   status?: 'JUST_POSTED' | 'FIRST_REACTIONS' | 'OUTDATED';
   isCommentable: boolean;
+  upvotes?: number;
+  downvotes?: number;
 }
 
 export interface UserData {
