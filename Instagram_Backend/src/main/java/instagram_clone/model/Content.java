@@ -55,8 +55,8 @@ public class Content {
     private LocalDateTime dateTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private PostStatus status;
+    @Column(name = "status", nullable = false)
+    private PostStatus status = PostStatus.JUST_POSTED;
 
     @Column(name = "is_commentable")
     private boolean isCommentable;

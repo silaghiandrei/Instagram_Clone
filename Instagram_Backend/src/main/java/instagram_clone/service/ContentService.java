@@ -7,10 +7,7 @@ import instagram_clone.dto.ContentUpdateDTO;
 import instagram_clone.dtoconverter.ContentConverter;
 import instagram_clone.dtoconverter.ContentCreateConverter;
 import instagram_clone.dtoconverter.ContentUpdateConverter;
-import instagram_clone.model.Content;
-import instagram_clone.model.ContentType;
-import instagram_clone.model.User;
-import instagram_clone.model.Tag;
+import instagram_clone.model.*;
 import instagram_clone.repository.ContentRepository;
 import instagram_clone.repository.UserRepository;
 import instagram_clone.repository.TagRepository;
@@ -51,8 +48,16 @@ public class ContentService {
             Content parent = contentRepository.findById(contentCreateDTO.getParentId())
                     .orElseThrow(() -> new RuntimeException("Parent content not found with id: " + contentCreateDTO.getParentId()));
             content.setParent(parent);
+            
+            if (parent.getType() == ContentType.POST && parent.getStatus() == PostStatus.JUST_POSTED) {
+                parent.setStatus(PostStatus.FIRST_REACTIONS);
+                contentRepository.save(parent);
+            }
+        } else {
+            content.setStatus(PostStatus.JUST_POSTED);
         }
-
+        
+        System.out.println("Saving content with status: " + content.getStatus());
         Content savedContent = contentRepository.save(content);
         return ContentConverter.toDTO(savedContent);
     }
@@ -63,12 +68,10 @@ public class ContentService {
             Content existingContent = contentRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Content not found with id: " + id));
 
-            // Log the incoming data
             System.out.println("Updating content with ID: " + id);
             System.out.println("Incoming title: " + contentUpdateDTO.getTitle());
             System.out.println("Incoming text: " + contentUpdateDTO.getText());
 
-            // Update only title and text
             existingContent.setTitle(contentUpdateDTO.getTitle());
             existingContent.setText(contentUpdateDTO.getText());
 
@@ -83,7 +86,8 @@ public class ContentService {
 
     @Transactional(readOnly = true)
     public ContentDTO findById(Long id) {
-        Content content = this.contentRepository.findById(id).orElseThrow();
+        Content content = this.contentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Content not found with id: " + id));
         fetchTagsForPost(content);
         return ContentConverter.toDTO(content);
     }
@@ -137,5 +141,19 @@ public class ContentService {
 
     public List<ContentDTO> findCommentsByAuthorId(Long authorId) {
         return this.contentRepository.findByAuthorIdAndType(authorId, ContentType.COMMENT).stream().map(ContentConverter::toDTO).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ContentDTO updatePostStatus(Long id, PostStatus newStatus) {
+        Content content = contentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Content not found with id: " + id));
+        
+        if (content.getType() != ContentType.POST) {
+            throw new RuntimeException("Can only update status of posts");
+        }
+        
+        content.setStatus(newStatus);
+        Content updatedContent = contentRepository.save(content);
+        return ContentConverter.toDTO(updatedContent);
     }
 }

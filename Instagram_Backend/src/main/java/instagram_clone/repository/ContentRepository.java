@@ -1,6 +1,7 @@
 package instagram_clone.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import instagram_clone.model.Content;
 import instagram_clone.model.ContentType;
@@ -18,9 +19,11 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     @Query("SELECT DISTINCT t FROM Tag t JOIN t.contents c WHERE c.id = :postId")
     List<Tag> findTagsForPost(@Param("postId") Long postId);
 
+    @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.tags WHERE c.id = :id")
+    Optional<Content> findById(@Param("id") Long id);
+
     List<Content> findByParentId(Long parentId);
 
     @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.tags WHERE c.author.id = :authorId AND c.type = :type")
     List<Content> findByAuthorIdAndType(@Param("authorId") Long authorId, @Param("type") ContentType type);
-
 }
