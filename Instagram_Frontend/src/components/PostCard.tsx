@@ -19,6 +19,7 @@ interface PostCardProps {
   onComment: (postId: number, comment: string) => void;
   onDelete?: (postId: number) => void;
   onEdit?: (post: Post) => void;
+  onToggleComments?: (postId: number, isCommentable: boolean) => void;
   showActions?: boolean;
 }
 
@@ -28,6 +29,7 @@ const PostCard: React.FC<PostCardProps> = ({
   onComment,
   onDelete,
   onEdit,
+  onToggleComments,
   showActions = false
 }) => {
   const navigate = useNavigate();
@@ -167,6 +169,19 @@ const PostCard: React.FC<PostCardProps> = ({
               >
                 Edit
               </Button>
+              {onToggleComments && (
+                <Button 
+                  variant="outlined" 
+                  color={!post.isCommentable ? "success" : "warning"}
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleComments(post.id!, !post.isCommentable);
+                  }}
+                >
+                  {!post.isCommentable ? "Enable Comments" : "Disable Comments"}
+                </Button>
+              )}
               {onDelete && (
                 <Button 
                   variant="outlined" 

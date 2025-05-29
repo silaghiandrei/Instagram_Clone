@@ -26,7 +26,12 @@ const UserPosts: React.FC = () => {
                 }
                 const userPosts = await postService.getPostsByUserId(parseInt(userId));
                 console.log('Loaded posts:', userPosts);
-                const sortedPosts = userPosts.sort((a, b) => {
+                // Update isCommentable based on status
+                const updatedPosts = userPosts.map(post => ({
+                    ...post,
+                    isCommentable: post.status !== 'OUTDATED'
+                }));
+                const sortedPosts = updatedPosts.sort((a, b) => {
                     const dateA = a.dateTime ? new Date(a.dateTime).getTime() : 0;
                     const dateB = b.dateTime ? new Date(b.dateTime).getTime() : 0;
                     return dateB - dateA;
@@ -84,7 +89,6 @@ const UserPosts: React.FC = () => {
             setIsSubmitting(true);
             setError(null);
             
-            // Only update title and text
             const updatedPostData = {
                 ...editingPost,
                 title: editTitle,
@@ -95,8 +99,7 @@ const UserPosts: React.FC = () => {
             const updatedPost = await postService.updatePost(editingPost.id, updatedPostData);
             console.log('Post updated successfully:', updatedPost);
 
-            // Update the posts list with the new title and text
-            setPosts(posts.map(post => 
+            setPosts(posts.map(post =>
                 post.id === updatedPost.id ? {
                     ...post,
                     title: updatedPost.title,
@@ -123,6 +126,46 @@ const UserPosts: React.FC = () => {
         setShowError(false);
     };
 
+    const handleToggleComments = async (postId: number, isCommentable: boolean) => {
+        try {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            // Get comments for this post first
+            const comments = await postService.getCommentsByPost(postId);
+            
+            // Determine the new status based on commentable state and comment count
+            let newStatus: 'JUST_POSTED' | 'FIRST_REACTIONS' | 'OUTDATED';
+            if (isCommentable) {
+                newStatus = comments.length > 0 ? 'FIRST_REACTIONS' : 'JUST_POSTED';
+            } else {
+                newStatus = 'OUTDATED';
+            }
+
+            // Update the post's status first
+            await postService.updatePostStatus(postId, newStatus);
+
+            // Then update the post's commentable status
+            const updatedPost = await postService.updatePost(postId, {
+                ...post,
+                isCommentable: isCommentable
+            });
+
+            // Update the posts list with the new status and commentable state
+            setPosts(posts.map(p => 
+                p.id === postId ? {
+                    ...p,
+                    isCommentable: isCommentable,
+                    status: newStatus
+                } : p
+            ));
+        } catch (error: any) {
+            console.error('Error toggling comments:', error);
+            setError(error.message || 'Failed to update post. Please try again.');
+            setShowError(true);
+        }
+    };
+
     if (loading) {
         return <Typography>Loading...</Typography>;
     }
@@ -144,6 +187,7 @@ const UserPosts: React.FC = () => {
                                 onComment={handleComment}
                                 onDelete={handleDeleteClick}
                                 onEdit={handleEditClick}
+                                onToggleComments={handleToggleComments}
                                 showActions={true}
                             />
                         </Box>

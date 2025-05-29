@@ -117,74 +117,87 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
             </Typography>
             <Divider sx={{ mb: 3 }} />
 
-            <form onSubmit={onCommentSubmit}>
-              <TextField
-                fullWidth
-                label="Title"
-                value={commentTitle}
-                onChange={onCommentTitleChange}
-                sx={{ mb: 2 }}
-                required
-              />
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                placeholder="Write a comment..."
-                value={comment}
-                onChange={onCommentChange}
-                sx={{ mb: 2 }}
-              />
-
-              <Box sx={{ mb: 2 }}>
-                <input
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  id="comment-image-upload"
-                  type="file"
-                  onChange={onCommentImageChange}
-                />
-                <label htmlFor="comment-image-upload">
-                  <Button
-                    variant="outlined"
-                    component="span"
-                    size="small"
-                    sx={{ mr: 2 }}
-                  >
-                    Add Image
-                  </Button>
-                </label>
-                {commentImagePreview && (
-                  <Box sx={{ mt: 2, position: 'relative', display: 'inline-block' }}>
-                    <img
-                      src={commentImagePreview}
-                      alt="Preview"
-                      style={{ maxHeight: 100, maxWidth: 100, objectFit: 'contain' }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={onClearImage}
-                      sx={{
-                        position: 'absolute',
-                        top: -8,
-                        right: -8,
-                        backgroundColor: 'background.paper',
-                      }}
-                    >
-                      ×
-                    </IconButton>
-                  </Box>
-                )}
+            {post.status === 'OUTDATED' ? (
+              <Box sx={{ 
+                p: 2, 
+                bgcolor: 'grey.100', 
+                borderRadius: 1,
+                textAlign: 'center'
+              }}>
+                <Typography color="text.secondary">
+                  Comments are disabled for this post
+                </Typography>
               </Box>
+            ) : (
+              <form onSubmit={onCommentSubmit}>
+                <TextField
+                  fullWidth
+                  label="Title"
+                  value={commentTitle}
+                  onChange={onCommentTitleChange}
+                  sx={{ mb: 2 }}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Write a comment..."
+                  value={comment}
+                  onChange={onCommentChange}
+                  sx={{ mb: 2 }}
+                />
 
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={!comment.trim()}
-              >
-                Post Comment
-              </Button>
-            </form>
+                <Box sx={{ mb: 2 }}>
+                  <input
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    id="comment-image-upload"
+                    type="file"
+                    onChange={onCommentImageChange}
+                  />
+                  <label htmlFor="comment-image-upload">
+                    <Button
+                      variant="outlined"
+                      component="span"
+                      size="small"
+                      sx={{ mr: 2 }}
+                    >
+                      Add Image
+                    </Button>
+                  </label>
+                  {commentImagePreview && (
+                    <Box sx={{ mt: 2, position: 'relative', display: 'inline-block' }}>
+                      <img
+                        src={commentImagePreview}
+                        alt="Preview"
+                        style={{ maxHeight: 100, maxWidth: 100, objectFit: 'contain' }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={onClearImage}
+                        sx={{
+                          position: 'absolute',
+                          top: -8,
+                          right: -8,
+                          backgroundColor: 'background.paper',
+                        }}
+                      >
+                        ×
+                      </IconButton>
+                    </Box>
+                  )}
+                </Box>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={!comment.trim()}
+                >
+                  Post Comment
+                </Button>
+              </form>
+            )}
 
             <Box sx={{ mt: 4 }}>
               {comments.length === 0 ? (
