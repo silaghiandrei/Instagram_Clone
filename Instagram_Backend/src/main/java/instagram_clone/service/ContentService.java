@@ -151,6 +151,14 @@ public class ContentService {
         if (content.getType() != ContentType.POST) {
             throw new RuntimeException("Can only update status of posts");
         }
+
+        // Get the number of comments for this post
+        List<Content> comments = contentRepository.findByParentId(id);
+        
+        // Validate status change based on comment count
+        if (newStatus == PostStatus.FIRST_REACTIONS && comments.isEmpty()) {
+            throw new RuntimeException("Cannot set status to FIRST_REACTIONS for a post with no comments");
+        }
         
         content.setStatus(newStatus);
         Content updatedContent = contentRepository.save(content);
