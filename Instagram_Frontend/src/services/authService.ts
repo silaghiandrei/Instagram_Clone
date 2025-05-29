@@ -3,12 +3,27 @@ import { LoginRequest, RegisterRequest, AuthResponse, UserData } from '../types'
 import { userService } from './userService';
 
 class AuthService {
-  async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/users/login', credentials);
-    const userData = response.data;
-    localStorage.setItem('token', 'dummy-token'); // Replace with actual token when implementing JWT
-    localStorage.setItem('userId', userData.id.toString());
-    return userData;
+  async login(credentials: LoginRequest): Promise<UserData> {
+    try {
+      const response = await api.post<UserData>('/users/login', credentials);
+      console.log('Login response:', response.data);
+      
+      if (!response.data || !response.data.id) {
+        throw new Error('Invalid response from server: missing user data');
+      }
+
+      const userData = response.data;
+      localStorage.setItem('token', 'dummy-token'); // Replace with actual token when implementing JWT
+      localStorage.setItem('userId', userData.id.toString());
+      
+      return userData;
+    } catch (error: any) {
+      console.error('Login error:', error.response?.data || error);
+      if (error.response?.status === 401) {
+        throw new Error('Invalid username or password');
+      }
+      throw new Error(error.response?.data?.message || 'Login failed. Please try again.');
+    }
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {

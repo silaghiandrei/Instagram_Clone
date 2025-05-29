@@ -74,7 +74,8 @@ class PostService {
       const contentDTO = {
         id: postData.id,
         title: postData.title,
-        text: postData.text
+        text: postData.text,
+        isCommentable: postData.isCommentable
       };
 
       console.log('Sending ContentDTO:', contentDTO);
@@ -87,6 +88,16 @@ class PostService {
         console.error('Server error details:', error.response.data);
       }
       throw new Error(error.response?.data?.message || 'Failed to update post');
+    }
+  }
+
+  async updatePostStatus(postId: number, status: string) {
+    try {
+      const response = await api.put<Post>(`/contents/update-status/${postId}?status=${status}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating post status:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || 'Failed to update post status');
     }
   }
 
