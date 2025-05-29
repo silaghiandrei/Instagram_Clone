@@ -5,6 +5,7 @@ import instagram_clone.dto.ContentDTO;
 import instagram_clone.dto.ContentUpdateDTO;
 import instagram_clone.model.ContentType;
 import instagram_clone.model.PostStatus;
+import instagram_clone.model.VoteType;
 import instagram_clone.service.ContentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -136,5 +137,30 @@ public class ContentController {
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Invalid status: " + status);
         }
+    }
+
+    @PostMapping("/{contentId}/vote")
+    public ResponseEntity<ContentDTO> addVote(
+            @PathVariable Long contentId,
+            @RequestParam Long userId,
+            @RequestParam String voteType) {
+        try {
+            VoteType type = VoteType.valueOf(voteType);
+            ContentDTO content = this.contentService.addVote(contentId, userId, type);
+            return ResponseEntity.ok(content);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid vote type: " + voteType);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to process vote: " + e.getMessage(), e);
+        }
+    }
+
+    @DeleteMapping("/{contentId}/vote")
+    public ResponseEntity<ContentDTO> removeVote(
+            @PathVariable Long contentId,
+            @RequestParam Long userId) {
+        ContentDTO content = this.contentService.removeVote(contentId, userId);
+        return ResponseEntity.ok(content);
     }
 }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.HashSet;
 import java.util.Set;
+import java.time.LocalDateTime;
 
 @Service
 public class ContentService {
@@ -161,6 +162,53 @@ public class ContentService {
         }
         
         content.setStatus(newStatus);
+        Content updatedContent = contentRepository.save(content);
+        return ContentConverter.toDTO(updatedContent);
+    }
+
+    @Transactional
+    public ContentDTO addVote(Long contentId, Long userId, VoteType voteType) {
+
+        Content content = contentRepository.findById(contentId)
+                .orElseThrow(() -> new RuntimeException("Content not found with id: " + contentId));
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        Vote existingVote = content.getVotes().stream()
+                .filter(vote -> vote.getUser().getId().equals(userId))
+                .findFirst()
+                .orElse(null);
+
+        if (existingVote != null) {
+            if (existingVote.getType() == voteType) {
+                content.getVotes().remove(existingVote);
+                existingVote.setContent(null);
+                existingVote.setUser(null);
+            } else {
+                existingVote.setType(voteType);
+            }
+        } else {
+            Vote vote = new Vote();
+            vote.setUser(user);
+            vote.setContent(content);
+            vote.setType(voteType);
+            vote.setDateTime(LocalDateTime.now());
+            content.getVotes().add(vote);
+        }
+
+        Content updatedContent = contentRepository.save(content);
+
+        return ContentConverter.toDTO(updatedContent);
+    }
+
+    @Transactional
+    public ContentDTO removeVote(Long contentId, Long userId) {
+        Content content = contentRepository.findById(contentId)
+                .orElseThrow(() -> new RuntimeException("Content not found with id: " + contentId));
+
+        content.getVotes().removeIf(vote -> vote.getUser().getId().equals(userId));
+        
         Content updatedContent = contentRepository.save(content);
         return ContentConverter.toDTO(updatedContent);
     }

@@ -1,19 +1,10 @@
 package instagram_clone.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -38,4 +29,21 @@ public class Vote {
 
     @Column(name = "date_time", nullable = false)
     private LocalDateTime dateTime;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vote vote = (Vote) o;
+        return Objects.equals(user != null ? user.getId() : null, vote.user != null ? vote.user.getId() : null) &&
+               Objects.equals(content != null ? content.getId() : null, vote.content != null ? vote.content.getId() : null);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+            user != null ? user.getId() : null,
+            content != null ? content.getId() : null
+        );
+    }
 }

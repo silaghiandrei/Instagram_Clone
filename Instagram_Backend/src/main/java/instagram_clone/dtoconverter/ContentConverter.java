@@ -6,6 +6,7 @@ import instagram_clone.model.Content;
 import instagram_clone.model.ContentType;
 import instagram_clone.model.User;
 import instagram_clone.model.PostStatus;
+import instagram_clone.model.VoteType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,6 +37,17 @@ public class ContentConverter {
         dto.setDateTime(content.getDateTime());
         dto.setStatus(content.getStatus());
         dto.setCommentable(content.isCommentable());
+
+        if (content.getVotes() != null) {
+            long upvotes = content.getVotes().stream()
+                .filter(vote -> vote.getType() == VoteType.UPVOTE)
+                .count();
+            long downvotes = content.getVotes().stream()
+                .filter(vote -> vote.getType() == VoteType.DOWN_VOTE)
+                .count();
+            dto.setUpvotes((int) upvotes);
+            dto.setDownvotes((int) downvotes);
+        }
 
         if (content.getType() == ContentType.COMMENT && content.getParent() != null) {
             Content parent = new Content();

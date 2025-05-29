@@ -23,4 +23,6 @@ public class ContentDTO {
     private Content parent;
     private boolean isCommentable;
     private Set<TagDTO> tags = new HashSet<>();
+    private Integer upvotes;
+    private Integer downvotes;
 }
