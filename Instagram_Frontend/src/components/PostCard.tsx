@@ -18,6 +18,7 @@ interface PostCardProps {
   onVote: (postId: number, voteType: 'up' | 'down') => void;
   onComment: (postId: number, comment: string) => void;
   onDelete?: (postId: number) => void;
+  onEdit?: (post: Post) => void;
   showActions?: boolean;
 }
 
@@ -26,6 +27,7 @@ const PostCard: React.FC<PostCardProps> = ({
   onVote, 
   onComment,
   onDelete,
+  onEdit,
   showActions = false
 }) => {
   const navigate = useNavigate();
@@ -70,7 +72,12 @@ const PostCard: React.FC<PostCardProps> = ({
     >
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Avatar sx={{ mr: 2 }}>{post.author.username[0].toUpperCase()}</Avatar>
+          <Avatar 
+            sx={{ mr: 2 }}
+            src={post.author.profilePicture ? `data:image/jpeg;base64,${post.author.profilePicture}` : undefined}
+          >
+            {!post.author.profilePicture && post.author.username[0].toUpperCase()}
+          </Avatar>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="subtitle1">{post.author.username}</Typography>
             <Typography variant="caption" color="text.secondary">
@@ -109,7 +116,7 @@ const PostCard: React.FC<PostCardProps> = ({
           {post.tags?.map((tag, index) => (
             <Chip 
               key={index} 
-              label={tag} 
+              label={tag.name} 
               size="small" 
               variant="outlined"
               color="primary"
@@ -153,7 +160,10 @@ const PostCard: React.FC<PostCardProps> = ({
                 variant="outlined" 
                 color="primary" 
                 size="small"
-                disabled
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.(post);
+                }}
               >
                 Edit
               </Button>
@@ -162,7 +172,10 @@ const PostCard: React.FC<PostCardProps> = ({
                   variant="outlined" 
                   color="error" 
                   size="small"
-                  onClick={() => onDelete(post.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(post.id);
+                  }}
                 >
                   Delete
                 </Button>

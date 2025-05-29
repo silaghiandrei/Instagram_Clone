@@ -64,25 +64,22 @@ const CreatePost: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    
-    if (!authService.getCurrentUser()) {
-      setError('You must be logged in to create a post');
-      setShowError(true);
-      return;
-    }
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       setIsSubmitting(true);
-      setError(null);
-      
       const formData = new FormData();
       formData.append('title', title);
       formData.append('text', content);
       formData.append('type', 'POST');
       formData.append('isCommentable', 'true');
-      formData.append('authorId', authService.getCurrentUser()?.id.toString() || '');
+      
+      const currentUser = await authService.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('User not authenticated');
+      }
+      
+      formData.append('authorId', currentUser.id.toString());
       formData.append('tags', JSON.stringify(tags.map(tag => tag.name)));
       
       if (image) {
@@ -90,11 +87,10 @@ const CreatePost: React.FC = () => {
       }
 
       await postService.createPost(formData);
-      navigate('/user');
+      navigate('/');
     } catch (error) {
       console.error('Error creating post:', error);
       setError('Failed to create post. Please try again.');
-      setShowError(true);
     } finally {
       setIsSubmitting(false);
     }

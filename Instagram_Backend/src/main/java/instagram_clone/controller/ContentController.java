@@ -2,6 +2,7 @@ package instagram_clone.controller;
 
 import instagram_clone.dto.ContentCreateDTO;
 import instagram_clone.dto.ContentDTO;
+import instagram_clone.dto.ContentUpdateDTO;
 import instagram_clone.model.ContentType;
 import instagram_clone.model.PostStatus;
 import instagram_clone.service.ContentService;
@@ -86,9 +87,13 @@ public class ContentController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ContentDTO> updateContent(@PathVariable Long id, @RequestBody ContentDTO contentDTO) {
-        ContentDTO content = this.contentService.update(id, contentDTO);
-        return ResponseEntity.ok(content);
+    public ResponseEntity<ContentDTO> updateContent(@PathVariable Long id, @RequestBody ContentUpdateDTO contentUpdateDTO) {
+        try {
+            ContentDTO content = this.contentService.update(id, contentUpdateDTO);
+            return ResponseEntity.ok(content);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update content: " + e.getMessage(), e);
+        }
     }
 
     @DeleteMapping("/delete/{id}")

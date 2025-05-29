@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import jakarta.persistence.FetchType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -70,7 +71,9 @@ public class Content {
     @OneToMany(mappedBy = "content", cascade = {CascadeType.ALL})
     private Set<Vote> votes = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(name = "content_tags", joinColumns = {@JoinColumn(name = "content_id")}, inverseJoinColumns = {@JoinColumn(name = "tag_id")})
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "content_tags", 
+        joinColumns = {@JoinColumn(name = "content_id")}, 
+        inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private Set<Tag> tags = new HashSet<>();
 }

@@ -59,6 +59,18 @@ const Profile: React.FC = () => {
         }
     };
 
+    const handleProfilePictureChange = async (file: File) => {
+        try {
+            if (!user) return;
+            const formData = new FormData();
+            formData.append('profilePicture', file);
+            const updatedUser = await userService.updateProfilePicture(user.id, formData);
+            setUser(updatedUser);
+        } catch (error) {
+            console.error('Error updating profile picture:', error);
+        }
+    };
+
     if (!user) {
         return <Typography>Loading...</Typography>;
     }
@@ -73,6 +85,7 @@ const Profile: React.FC = () => {
                 onCancelClick={() => setIsEditing(false)}
                 onChange={handleChange}
                 onSubmit={handleSubmit}
+                onProfilePictureChange={handleProfilePictureChange}
             />
         </Container>
     );

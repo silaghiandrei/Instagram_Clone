@@ -1,9 +1,13 @@
 package instagram_clone.dtoconverter;
 
 import instagram_clone.dto.ContentDTO;
+import instagram_clone.dto.TagDTO;
 import instagram_clone.model.Content;
 import instagram_clone.model.ContentType;
 import instagram_clone.model.User;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class ContentConverter {
 
@@ -20,6 +24,7 @@ public class ContentConverter {
             authorInfo.setRole(author.getRole());
             authorInfo.setScore(author.getScore());
             authorInfo.setBanned(author.getBanned());
+            authorInfo.setProfilePicture(author.getProfilePicture());
             dto.setAuthor(authorInfo);
         }
         
@@ -42,17 +47,37 @@ public class ContentConverter {
             dto.setParent(null);
         }
 
+        Set<TagDTO> tagDTOs = new HashSet<>();
+        if (content.getTags() != null) {
+            content.getTags().forEach(tag -> {
+                TagDTO tagDTO = new TagDTO();
+                tagDTO.setName(tag.getName());
+                tagDTOs.add(tagDTO);
+            });
+        }
+        dto.setTags(tagDTOs);
+
         return dto;
     }
 
     public static Content toEntity(ContentDTO dto) {
         Content content = new Content();
-        content.setType(dto.getType());
+        
+        // Convert type string to enum if needed
+        if (dto.getType() != null) {
+            content.setType(dto.getType());
+        }
+        
         content.setTitle(dto.getTitle());
         content.setText(dto.getText());
         content.setImage(dto.getImage());
         content.setDateTime(dto.getDateTime());
-        content.setStatus(dto.getStatus());
+        
+        // Convert status string to enum if needed
+        if (dto.getStatus() != null) {
+            content.setStatus(dto.getStatus());
+        }
+        
         content.setCommentable(dto.isCommentable());
 
         if (dto.getParent() != null) {

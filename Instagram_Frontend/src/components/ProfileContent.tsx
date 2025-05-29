@@ -1,5 +1,5 @@
-import React from 'react';
-import { Typography, Box, Paper, TextField, Button, Avatar, Grid } from '@mui/material';
+import React, { useRef } from 'react';
+import { Typography, Box, Paper, TextField, Button, Avatar, Grid, IconButton } from '@mui/material';
 import { UserData } from '../types';
 
 interface ProfileContentProps {
@@ -13,6 +13,7 @@ interface ProfileContentProps {
     onCancelClick: () => void;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.FormEvent) => void;
+    onProfilePictureChange: (file: File) => void;
 }
 
 const ProfileContent: React.FC<ProfileContentProps> = ({
@@ -22,8 +23,19 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
     onEditClick,
     onCancelClick,
     onChange,
-    onSubmit
+    onSubmit,
+    onProfilePictureChange
 }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Add logging for profile picture
+    React.useEffect(() => {
+        console.log('User profile picture exists:', !!user.profilePicture);
+        if (user.profilePicture) {
+            console.log('Profile picture length:', user.profilePicture.length);
+        }
+    }, [user.profilePicture]);
+
     const handleEditClick = (e: React.MouseEvent) => {
         e.preventDefault();
         onEditClick();
@@ -34,14 +46,56 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
         console.log('Change password clicked');
     };
 
+    const handleProfilePictureClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            console.log('Selected file:', file.name, 'Size:', file.size, 'bytes');
+            onProfilePictureChange(file);
+        }
+    };
+
     return (
         <Box sx={{ mt: 4, mb: 4 }}>
             <Paper elevation={3} sx={{ p: 4 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Avatar
-                        sx={{ width: 100, height: 100, mb: 2 }}
-                        src={user.profilePicture}
-                    />
+                    <Box sx={{ position: 'relative', mb: 2 }}>
+                        <Avatar
+                            sx={{ width: 100, height: 100 }}
+                            src={user.profilePicture ? `data:image/jpeg;base64,${user.profilePicture}` : undefined}
+                        >
+                            {!user.profilePicture && user.username[0].toUpperCase()}
+                        </Avatar>
+                        {isEditing && (
+                            <Button
+                                variant="contained"
+                                size="small"
+                                onClick={handleProfilePictureClick}
+                                sx={{
+                                    position: 'absolute',
+                                    bottom: -10,
+                                    right: -10,
+                                    minWidth: 'auto',
+                                    width: 30,
+                                    height: 30,
+                                    borderRadius: '50%',
+                                    p: 0
+                                }}
+                            >
+                                +
+                            </Button>
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                        />
+                    </Box>
                     <Box component="form" onSubmit={onSubmit} sx={{ width: '100%', maxWidth: 600 }}>
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
