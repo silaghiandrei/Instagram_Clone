@@ -9,6 +9,7 @@ import instagram_clone.model.User;
 import instagram_clone.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.HashMap;
@@ -63,5 +64,17 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         this.userService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/profile-picture", consumes = "multipart/form-data")
+    public ResponseEntity<UserDTO> updateProfilePicture(
+            @PathVariable Long id,
+            @RequestParam("profilePicture") MultipartFile profilePicture) {
+        try {
+            UserDTO updatedUser = userService.updateProfilePicture(id, profilePicture);
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update profile picture: " + e.getMessage(), e);
+        }
     }
 }

@@ -10,12 +10,21 @@ import {
   Menu,
   MenuItem,
   Avatar,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
+  Grid,
+  CircularProgress,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import PostCard from './PostCard';
 import { postService } from '../services/postService';
 import { authService } from '../services/authService';
-import { Post } from '../types';
+import { userService } from '../services/userService';
+import { Post, UserData } from '../types';
 
 interface UserContentProps {
   filterType: string;
@@ -40,33 +49,122 @@ const UserContent: React.FC<UserContentProps> = ({
   onFilterSelect,
   onProfileSelect,
 }) => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tagFilter, setTagFilter] = useState('');
+  const [titleFilter, setTitleFilter] = useState('');
+  const [userFilter, setUserFilter] = useState('');
+  const [user, setUser] = useState<UserData | null>(null);
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        
+        // First try to get the current user
+        const currentUser = await authService.getCurrentUser();
+        
+        // If no ID is provided, use the current user
+        if (!id) {
+          if (!currentUser) {
+            throw new Error('No user ID provided and no authenticated user found');
+          }
+          setUser(currentUser);
+          setIsCurrentUser(true);
+        } else {
+          // If ID is provided, fetch that user
+          const userId = parseInt(id);
+          if (isNaN(userId)) {
+            throw new Error('Invalid user ID');
+          }
 
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const fetchedPosts = await postService.getAllPosts();
-      console.log('Fetched posts:', fetchedPosts);
-      // Sort posts by dateTime in descending order (newest first)
-      const sortedPosts = fetchedPosts.sort((a, b) => {
-        const dateA = a.dateTime ? new Date(a.dateTime).getTime() : 0;
-        const dateB = b.dateTime ? new Date(b.dateTime).getTime() : 0;
-        return dateB - dateA;
-      });
-      setPosts(sortedPosts);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load posts');
-      console.error('Error fetching posts:', err);
-    } finally {
-      setLoading(false);
+          const userData = await userService.getUserById(userId);
+          setUser(userData);
+          setIsCurrentUser(currentUser?.id === userId);
+        }
+
+        // Fetch posts regardless of which user we're viewing
+        const fetchedPosts = await postService.getAllPosts();
+        console.log('Fetched posts:', fetchedPosts);
+        // Sort posts by dateTime in descending order (newest first)
+        const sortedPosts = fetchedPosts.sort((a, b) => {
+          const dateA = a.dateTime ? new Date(a.dateTime).getTime() : 0;
+          const dateB = b.dateTime ? new Date(b.dateTime).getTime() : 0;
+          return dateB - dateA;
+        });
+        setAllPosts(sortedPosts);
+        setPosts(sortedPosts);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load data');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [id]);
+
+  useEffect(() => {
+    if (filterType === 'By Tag') {
+      setTagFilter('');
+      setTitleFilter('');
+      setUserFilter('');
+    } else if (filterType === 'By Title') {
+      setTagFilter('');
+      setTitleFilter('');
+      setUserFilter('');
+    } else if (filterType === 'By User') {
+      setTagFilter('');
+      setTitleFilter('');
+      setUserFilter('');
+    } else {
+      setPosts(allPosts);
+    }
+  }, [filterType, allPosts]);
+
+  const handleTagFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const tag = event.target.value;
+    setTagFilter(tag);
+    if (tag.trim() === '') {
+      setPosts(allPosts);
+    } else {
+      const filteredPosts = allPosts.filter(post => 
+        post.tags?.some(t => t.name?.toLowerCase().includes(tag.toLowerCase()))
+      );
+      setPosts(filteredPosts);
+    }
+  };
+
+  const handleTitleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const title = event.target.value;
+    setTitleFilter(title);
+    if (title.trim() === '') {
+      setPosts(allPosts);
+    } else {
+      const filteredPosts = allPosts.filter(post => 
+        post.title?.toLowerCase().includes(title.toLowerCase())
+      );
+      setPosts(filteredPosts);
+    }
+  };
+
+  const handleUserFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const username = event.target.value;
+    setUserFilter(username);
+    if (username.trim() === '') {
+      setPosts(allPosts);
+    } else {
+      const filteredPosts = allPosts.filter(post => 
+        post.author?.username?.toLowerCase().includes(username.toLowerCase())
+      );
+      setPosts(filteredPosts);
     }
   };
 
@@ -93,6 +191,32 @@ const UserContent: React.FC<UserContentProps> = ({
     navigate('/login');
   };
 
+  const handleEditProfile = () => {
+    navigate('/profile');
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="sm">
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <Container maxWidth="sm">
+        <Box mt={4}>
+          <Typography color="error" align="center">
+            {error || 'User not found'}
+          </Typography>
+        </Box>
+      </Container>
+    );
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflow: 'hidden' }}>
       <AppBar position="static" color="default" elevation={0}>
@@ -100,7 +224,10 @@ const UserContent: React.FC<UserContentProps> = ({
           <Avatar
             sx={{ width: 60, height: 60, mr: 2, cursor: 'pointer' }}
             onClick={onProfileClick}
-          />
+            src={user?.profilePicture ? `data:image/jpeg;base64,${user.profilePicture}` : undefined}
+          >
+            {!user?.profilePicture && user?.username[0].toUpperCase()}
+          </Avatar>
           <Menu
             anchorEl={profileMenuAnchor}
             open={Boolean(profileMenuAnchor)}
@@ -130,7 +257,6 @@ const UserContent: React.FC<UserContentProps> = ({
             onClose={onFilterMenuClose}
           >
             <MenuItem onClick={() => onFilterSelect('All Posts')}>All Posts</MenuItem>
-            <MenuItem onClick={() => onFilterSelect('My Posts')}>My Posts</MenuItem>
             <MenuItem onClick={() => onFilterSelect('By Tag')}>Search by Tag</MenuItem>
             <MenuItem onClick={() => onFilterSelect('By Title')}>Search by Title</MenuItem>
             <MenuItem onClick={() => onFilterSelect('By User')}>Search by User</MenuItem>
@@ -161,6 +287,39 @@ const UserContent: React.FC<UserContentProps> = ({
           </Button>
         </Box>
 
+        {filterType === 'By Tag' && (
+          <TextField
+            fullWidth
+            label="Enter tag"
+            value={tagFilter}
+            onChange={handleTagFilterChange}
+            placeholder="Type to filter by tag..."
+            sx={{ mb: 2 }}
+          />
+        )}
+
+        {filterType === 'By Title' && (
+          <TextField
+            fullWidth
+            label="Enter title"
+            value={titleFilter}
+            onChange={handleTitleFilterChange}
+            placeholder="Type to filter by title..."
+            sx={{ mb: 2 }}
+          />
+        )}
+
+        {filterType === 'By User' && (
+          <TextField
+            fullWidth
+            label="Enter username"
+            value={userFilter}
+            onChange={handleUserFilterChange}
+            placeholder="Type to filter by username..."
+            sx={{ mb: 2 }}
+          />
+        )}
+
         {loading ? (
           <Typography>Loading posts...</Typography>
         ) : error ? (
@@ -175,7 +334,13 @@ const UserContent: React.FC<UserContentProps> = ({
             }}
           >
             <Typography variant="body1" color="text.secondary">
-              No posts found
+              {filterType === 'By Tag' && tagFilter ? 
+                `No posts found with tag "${tagFilter}"` : 
+                filterType === 'By Title' && titleFilter ?
+                `No posts found with title containing "${titleFilter}"` :
+                filterType === 'By User' && userFilter ?
+                `No posts found by user "${userFilter}"` :
+                'No posts found'}
             </Typography>
           </Paper>
         ) : (
@@ -189,21 +354,6 @@ const UserContent: React.FC<UserContentProps> = ({
           ))
         )}
       </Container>
-
-      <Paper 
-        sx={{ 
-          position: 'fixed', 
-          bottom: 0, 
-          left: 0, 
-          right: 0,
-          borderTop: '1px solid #e0e0e0',
-          height: 60,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }} 
-        elevation={0}
-      />
     </Box>
   );
 };

@@ -1,63 +1,38 @@
 import api from './api';
-import { LoginRequest, RegisterRequest, AuthResponse } from '../types';
+import { LoginRequest, RegisterRequest, AuthResponse, UserData } from '../types';
+import { userService } from './userService';
 
 class AuthService {
-  async login(data: LoginRequest): Promise<AuthResponse> {
-    try {
-      const response = await api.post<AuthResponse>('/users/login', data);
-      
-      if (!response.data) {
-        throw new Error('Invalid response from server');
-      }
-      
-      if (!response.data.id) {
-        throw new Error('Invalid response from server');
-      }
-      
-      localStorage.setItem('userId', response.data.id.toString());
-      localStorage.setItem('username', response.data.username);
-      localStorage.setItem('email', response.data.email);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed. Please check your credentials.');
-    }
+  async login(credentials: LoginRequest): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>('/users/login', credentials);
+    const userData = response.data;
+    localStorage.setItem('token', 'dummy-token'); // Replace with actual token when implementing JWT
+    localStorage.setItem('userId', userData.id.toString());
+    return userData;
   }
 
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    try {
-      const response = await api.post<AuthResponse>('/users/create', data);
-      
-      if (!response.data || !response.data.id) {
-        throw new Error('Invalid response from server');
-      }
-      
-      localStorage.setItem('userId', response.data.id.toString());
-      localStorage.setItem('username', response.data.username);
-      localStorage.setItem('email', response.data.email);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Registration failed. Please try again.');
-    }
+  async register(userData: RegisterRequest): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>('/users/create', userData);
+    return response.data;
   }
 
   logout(): void {
+    localStorage.removeItem('token');
     localStorage.removeItem('userId');
-    localStorage.removeItem('username');
-    localStorage.removeItem('email');
   }
 
-  getCurrentUser(): AuthResponse | null {
+  async getCurrentUser(): Promise<UserData | null> {
     const userId = localStorage.getItem('userId');
-    const username = localStorage.getItem('username');
-    const email = localStorage.getItem('email');
-    
-    if (!userId || !username || !email) return null;
-    
-    return {
-      id: parseInt(userId),
-      username,
-      email
-    };
+    if (!userId) return null;
+
+    try {
+      // Fetch the full user data
+      const user = await userService.getUserById(parseInt(userId));
+      return user;
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+      return null;
+    }
   }
 
   isAuthenticated(): boolean {

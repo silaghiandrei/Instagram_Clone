@@ -2,19 +2,26 @@ package instagram_clone.service;
 
 import instagram_clone.dto.ContentCreateDTO;
 import instagram_clone.dto.ContentDTO;
+import instagram_clone.dto.TagDTO;
+import instagram_clone.dto.ContentUpdateDTO;
 import instagram_clone.dtoconverter.ContentConverter;
 import instagram_clone.dtoconverter.ContentCreateConverter;
+import instagram_clone.dtoconverter.ContentUpdateConverter;
 import instagram_clone.model.Content;
 import instagram_clone.model.ContentType;
 import instagram_clone.model.User;
+import instagram_clone.model.Tag;
 import instagram_clone.repository.ContentRepository;
 import instagram_clone.repository.UserRepository;
 import instagram_clone.repository.TagRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.hibernate.Hibernate;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class ContentService {
@@ -51,29 +58,27 @@ public class ContentService {
     }
 
     @Transactional
-    public ContentDTO update(Long id, ContentDTO contentDTO) {
-        Content existingContent = contentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Content not found with id: " + id));
+    public ContentDTO update(Long id, ContentUpdateDTO contentUpdateDTO) {
+        try {
+            Content existingContent = contentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Content not found with id: " + id));
 
-        // Update basic fields
-        existingContent.setTitle(contentDTO.getTitle());
-        existingContent.setText(contentDTO.getText());
-        existingContent.setImage(contentDTO.getImage());
-        existingContent.setStatus(contentDTO.getStatus());
-        existingContent.setCommentable(contentDTO.isCommentable());
+            // Log the incoming data
+            System.out.println("Updating content with ID: " + id);
+            System.out.println("Incoming title: " + contentUpdateDTO.getTitle());
+            System.out.println("Incoming text: " + contentUpdateDTO.getText());
 
-        // Don't update author or type as these shouldn't change
-        // Don't update dateTime as it should remain the original creation time
+            // Update only title and text
+            existingContent.setTitle(contentUpdateDTO.getTitle());
+            existingContent.setText(contentUpdateDTO.getText());
 
-        // Handle parent relationship if it's a comment
-        if (existingContent.getType() == ContentType.COMMENT && contentDTO.getParent() != null) {
-            Content parent = contentRepository.findById(contentDTO.getParent().getId())
-                    .orElseThrow(() -> new RuntimeException("Parent content not found with id: " + contentDTO.getParent().getId()));
-            existingContent.setParent(parent);
+            Content updatedContent = contentRepository.save(existingContent);
+            return ContentUpdateConverter.toDTO(updatedContent);
+        } catch (Exception e) {
+            System.err.println("Error updating content: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to update content: " + e.getMessage(), e);
         }
-
-        Content updatedContent = contentRepository.save(existingContent);
-        return ContentConverter.toDTO(updatedContent);
     }
 
     @Transactional(readOnly = true)
@@ -107,13 +112,15 @@ public class ContentService {
     }
 
     @Transactional(readOnly = true)
-    private void fetchTagsForPost(Content post) {
-        List<Object[]> tagResults = contentRepository.findTagsForPost(post.getId());
-        post.getTags().clear();
-        tagResults.forEach(tagResult -> {
-            String tagName = (String) tagResult[0];
-            post.getTags().add(tagRepository.findByName(tagName).orElse(null));
-        });
+    protected void fetchTagsForPost(Content post) {
+        try {
+            Hibernate.initialize(post.getTags());
+            List<Tag> tags = contentRepository.findTagsForPost(post.getId());
+            Set<Tag> newTags = new HashSet<>(tags);
+            post.setTags(newTags);
+        } catch (Exception e) {
+            System.err.println("Error fetching tags for post " + post.getId() + ": " + e.getMessage());
+        }
     }
 
     public List<ContentDTO> findAllCommentsByParentId(Long parentId) {
@@ -121,7 +128,11 @@ public class ContentService {
     }
 
     public List<ContentDTO> findPostsByAuthorId(Long authorId) {
-        return this.contentRepository.findByAuthorIdAndType(authorId, ContentType.POST).stream().map(ContentConverter::toDTO).collect(Collectors.toList());
+        List<Content> posts = this.contentRepository.findByAuthorIdAndType(authorId, ContentType.POST);
+        posts.forEach(this::fetchTagsForPost);
+        return posts.stream()
+            .map(ContentConverter::toDTO)
+            .collect(Collectors.toList());
     }
 
     public List<ContentDTO> findCommentsByAuthorId(Long authorId) {

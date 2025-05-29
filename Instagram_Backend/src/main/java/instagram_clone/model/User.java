@@ -45,6 +45,9 @@ public class User {
     @Column(name = "banned")
     private Boolean banned;
 
+    @Column(name = "profile_picture", columnDefinition = "LONGBLOB")
+    private byte[] profilePicture;
+
     @OneToMany(mappedBy = "author", cascade = {CascadeType.ALL})
     private List<Content> contents = new ArrayList();
 

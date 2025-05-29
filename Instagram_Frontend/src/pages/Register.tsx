@@ -27,7 +27,13 @@ const Register: React.FC = () => {
         }
 
         try {
-            await authService.register(formData);
+            const registerData = {
+                ...formData,
+                role: 'USER',
+                banned: false,
+                score: 0
+            };
+            await authService.register(registerData);
             navigate('/user');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Registration failed');

@@ -71,7 +71,9 @@ public class Content {
     @OneToMany(mappedBy = "content", cascade = {CascadeType.ALL})
     private Set<Vote> votes = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "content_tags", joinColumns = {@JoinColumn(name = "content_id")}, inverseJoinColumns = {@JoinColumn(name = "tag_id")})
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "content_tags", 
+        joinColumns = {@JoinColumn(name = "content_id")}, 
+        inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private Set<Tag> tags = new HashSet<>();
 }

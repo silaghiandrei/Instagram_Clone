@@ -49,9 +49,26 @@ class PostService {
     return response.data;
   }
 
-  async updatePost(postId: number, data: { title: string; text: string }) {
-    const response = await api.put<Post>(`/contents/update/${postId}`, data);
-    return response.data;
+  async updatePost(postId: number, postData: Post) {
+    try {
+      // Only send title and text for update
+      const contentDTO = {
+        id: postData.id,
+        title: postData.title,
+        text: postData.text
+      };
+
+      console.log('Sending ContentDTO:', contentDTO);
+      const response = await api.put<Post>(`/contents/update/${postId}`, contentDTO);
+      console.log('Update response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating post:', error.response?.data || error.message);
+      if (error.response?.data) {
+        console.error('Server error details:', error.response.data);
+      }
+      throw new Error(error.response?.data?.message || 'Failed to update post');
+    }
   }
 
   async deletePost(postId: number) {

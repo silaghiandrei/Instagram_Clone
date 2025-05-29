@@ -24,6 +24,7 @@ public class ContentConverter {
             authorInfo.setRole(author.getRole());
             authorInfo.setScore(author.getScore());
             authorInfo.setBanned(author.getBanned());
+            authorInfo.setProfilePicture(author.getProfilePicture());
             dto.setAuthor(authorInfo);
         }
         
@@ -61,12 +62,22 @@ public class ContentConverter {
 
     public static Content toEntity(ContentDTO dto) {
         Content content = new Content();
-        content.setType(dto.getType());
+        
+        // Convert type string to enum if needed
+        if (dto.getType() != null) {
+            content.setType(dto.getType());
+        }
+        
         content.setTitle(dto.getTitle());
         content.setText(dto.getText());
         content.setImage(dto.getImage());
         content.setDateTime(dto.getDateTime());
-        content.setStatus(dto.getStatus());
+        
+        // Convert status string to enum if needed
+        if (dto.getStatus() != null) {
+            content.setStatus(dto.getStatus());
+        }
+        
         content.setCommentable(dto.isCommentable());
 
         if (dto.getParent() != null) {

@@ -14,7 +14,9 @@ export interface UserData {
   id: number;
   username: string;
   email: string;
-  bio?: string;
+  role: string;
+  score: number;
+  banned: boolean;
   profilePicture?: string;
 }
 
@@ -27,6 +29,7 @@ export interface Post {
     role: string;
     score: number;
     banned: boolean;
+    profilePicture?: string;
   };
   type: 'POST' | 'COMMENT';
   title: string;
@@ -48,6 +51,9 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
+  role?: string;
+  banned?: boolean;
+  score?: number;
 }
 
 export interface AuthResponse {

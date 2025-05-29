@@ -16,6 +16,7 @@ const PostDetail: React.FC = () => {
   const [comment, setComment] = useState('');
   const [commentImage, setCommentImage] = useState<File | null>(null);
   const [commentImagePreview, setCommentImagePreview] = useState<string>('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -73,18 +74,22 @@ const PostDetail: React.FC = () => {
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!post || !comment.trim()) return;
-
-    const currentUser = authService.getCurrentUser();
-    if (!currentUser) {
-      setError('You must be logged in to comment');
+    if (!post) {
+      setError('Post not found');
       return;
     }
 
     try {
+      setSubmitting(true);
       const formData = new FormData();
       formData.append('title', 'Comment');
       formData.append('text', comment);
+      
+      const currentUser = await authService.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('User not authenticated');
+      }
+      
       formData.append('authorId', currentUser.id.toString());
       
       if (commentImage) {
@@ -92,15 +97,16 @@ const PostDetail: React.FC = () => {
       }
 
       await postService.createComment(post.id, formData);
-      
       setComment('');
       setCommentImage(null);
       setCommentImagePreview('');
       
       fetchComments(post.id);
-    } catch (err) {
-      console.error('Error posting comment:', err);
-      setError('Failed to post comment');
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      setError('Failed to submit comment. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 

@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Typography } from '@mui/material';
+import { Typography, Container, Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Alert, Snackbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { postService } from '../services/postService';
 import { Post } from '../types';
-import UserPostsContent from '../components/UserPostsContent';
+import PostCard from '../components/PostCard';
 
 const UserPosts: React.FC = () => {
     const navigate = useNavigate();
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [editingPost, setEditingPost] = useState<Post | null>(null);
+    const [editTitle, setEditTitle] = useState('');
+    const [editText, setEditText] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [showError, setShowError] = useState(false);
 
     useEffect(() => {
         const fetchUserPosts = async () => {
@@ -19,9 +25,16 @@ const UserPosts: React.FC = () => {
                     return;
                 }
                 const userPosts = await postService.getPostsByUserId(parseInt(userId));
-                setPosts(userPosts);
+                console.log('Loaded posts:', userPosts);
+                const sortedPosts = userPosts.sort((a, b) => {
+                    const dateA = a.dateTime ? new Date(a.dateTime).getTime() : 0;
+                    const dateB = b.dateTime ? new Date(b.dateTime).getTime() : 0;
+                    return dateB - dateA;
+                });
+                setPosts(sortedPosts);
             } catch (error) {
                 console.error('Error fetching user posts:', error);
+                setPosts([]);
             } finally {
                 setLoading(false);
             }
@@ -57,17 +70,138 @@ const UserPosts: React.FC = () => {
         }
     };
 
+    const handleEditClick = (post: Post) => {
+        console.log('Editing post:', post);
+        setEditingPost(post);
+        setEditTitle(post.title);
+        setEditText(post.text);
+    };
+
+    const handleEditSubmit = async () => {
+        if (!editingPost) return;
+
+        try {
+            setIsSubmitting(true);
+            setError(null);
+            
+            // Only update title and text
+            const updatedPostData = {
+                ...editingPost,
+                title: editTitle,
+                text: editText
+            };
+            
+            console.log('Submitting updated post:', updatedPostData);
+            const updatedPost = await postService.updatePost(editingPost.id, updatedPostData);
+            console.log('Post updated successfully:', updatedPost);
+
+            // Update the posts list with the new title and text
+            setPosts(posts.map(post => 
+                post.id === updatedPost.id ? {
+                    ...post,
+                    title: updatedPost.title,
+                    text: updatedPost.text
+                } : post
+            ));
+            setEditingPost(null);
+        } catch (error: any) {
+            console.error('Error updating post:', error);
+            setError(error.message || 'Failed to update post. Please try again.');
+            setShowError(true);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEditCancel = () => {
+        setEditingPost(null);
+        setEditTitle('');
+        setEditText('');
+    };
+
+    const handleCloseError = () => {
+        setShowError(false);
+    };
+
     if (loading) {
         return <Typography>Loading...</Typography>;
     }
 
     return (
-        <UserPostsContent
-            posts={posts}
-            onVote={handleVote}
-            onComment={handleComment}
-            onDelete={handleDeleteClick}
-        />
+        <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Typography variant="h4" gutterBottom>
+                    My Posts
+                </Typography>
+                {posts.length === 0 ? (
+                    <Typography>You haven't created any posts yet.</Typography>
+                ) : (
+                    posts.map((post) => (
+                        <Box key={post.id}>
+                            <PostCard 
+                                post={post} 
+                                onVote={handleVote}
+                                onComment={handleComment}
+                                onDelete={handleDeleteClick}
+                                onEdit={handleEditClick}
+                                showActions={true}
+                            />
+                        </Box>
+                    ))
+                )}
+            </Box>
+
+            <Dialog open={!!editingPost} onClose={handleEditCancel} maxWidth="sm" fullWidth>
+                <DialogTitle>Edit Post</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                        <TextField
+                            label="Title"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            fullWidth
+                            required
+                            error={!editTitle}
+                            helperText={!editTitle ? 'Title is required' : ''}
+                        />
+                        <TextField
+                            label="Content"
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            fullWidth
+                            required
+                            multiline
+                            rows={4}
+                            error={!editText}
+                            helperText={!editText ? 'Content is required' : ''}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleEditCancel} disabled={isSubmitting}>
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleEditSubmit} 
+                        variant="contained" 
+                        disabled={!editTitle || !editText || isSubmitting}
+                    >
+                        {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar 
+                open={showError} 
+                autoHideDuration={6000} 
+                onClose={handleCloseError}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+                    {error}
+                </Alert>
+            </Snackbar>
+        </Container>
     );
 };
 
