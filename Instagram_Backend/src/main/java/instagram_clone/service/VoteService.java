@@ -1,5 +1,6 @@
 package instagram_clone.service;
 
+import instagram_clone.dto.ScoreDTO;
 import instagram_clone.model.Vote;
 import instagram_clone.model.VoteType;
 import instagram_clone.model.User;
@@ -9,6 +10,8 @@ import instagram_clone.repository.UserRepository;
 import instagram_clone.repository.ContentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,16 +19,23 @@ import java.util.Optional;
 
 @Service
 public class VoteService {
+    private static final Logger logger = LoggerFactory.getLogger(VoteService.class);
+
     private final VoteRepository voteRepository;
     private final UserRepository userRepository;
     private final ContentRepository contentRepository;
+    private final ScoreCalculationService scoreCalculationService;
 
-    public VoteService(VoteRepository voteRepository, 
-                      UserRepository userRepository,
-                      ContentRepository contentRepository) {
+    public VoteService(
+            VoteRepository voteRepository,
+            UserRepository userRepository,
+            ContentRepository contentRepository,
+            ScoreCalculationService scoreCalculationService
+    ) {
         this.voteRepository = voteRepository;
         this.userRepository = userRepository;
         this.contentRepository = contentRepository;
+        this.scoreCalculationService = scoreCalculationService;
     }
 
     @Transactional
@@ -105,4 +115,4 @@ public class VoteService {
         }
         throw new RuntimeException("Vote not found for user " + userId + " and content " + contentId);
     }
-} 
+}

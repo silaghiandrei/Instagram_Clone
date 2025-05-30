@@ -10,7 +10,7 @@ public class UserDTO {
     private String username;
     private String email;
     private UserRole role;
-    private Integer score;
+    private Double score;
     private Boolean banned;
     private String profilePicture;
 

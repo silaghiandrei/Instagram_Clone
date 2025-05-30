@@ -10,6 +10,6 @@ public class UserCreateDTO {
     private String email;
     private String password;
     private UserRole role;
-    private Integer score;
+    private Double score;
     private Boolean banned;
 }

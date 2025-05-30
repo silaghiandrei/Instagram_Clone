@@ -133,6 +133,7 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
             size="small"
             onClick={() => onVote(post.id!, 'up')}
             sx={{ mr: 1 }}
+            disabled={currentUser?.id === post.author?.id}
           >
             Upvote
           </Button>
@@ -144,6 +145,7 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
             size="small"
             onClick={() => onVote(post.id!, 'down')}
             sx={{ mr: 1 }}
+            disabled={currentUser?.id === post.author?.id}
           >
             Downvote
           </Button>
@@ -157,6 +159,11 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
           >
             {`${(post.upvotes || 0) - (post.downvotes || 0)} votes`}
           </Typography>
+          {currentUser?.id === post.author?.id && (
+            <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+              You cannot vote on your own content
+            </Typography>
+          )}
         </Box>
 
         <Divider sx={{ my: 3 }} />
@@ -326,6 +333,7 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                               variant="outlined" 
                               size="small"
                               onClick={() => onVote(comment.id!, 'up')}
+                              disabled={currentUser?.id === comment.author?.id}
                             >
                               Upvote
                             </Button>
@@ -336,6 +344,7 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                               variant="outlined" 
                               size="small"
                               onClick={() => onVote(comment.id!, 'down')}
+                              disabled={currentUser?.id === comment.author?.id}
                             >
                               Downvote
                             </Button>
@@ -349,6 +358,11 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                             >
                               {`${(comment.upvotes || 0) - (comment.downvotes || 0)} votes`}
                             </Typography>
+                            {currentUser?.id === comment.author?.id && (
+                              <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                                You cannot vote on your own content
+                              </Typography>
+                            )}
                           </Box>
                         </Box>
                       </CardContent>
