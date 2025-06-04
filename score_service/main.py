@@ -30,8 +30,7 @@ async def calculate_score(request: ScoreRequest):
         vote = request.vote
         content_type = vote["contentType"]
         vote_type = vote["voteType"]
-        voter_id = vote["voterId"]
-        author_id = vote["authorId"]
+
         
         score = 0.0
         
@@ -44,8 +43,8 @@ async def calculate_score(request: ScoreRequest):
             if content_type == "POST":
                 score = POST_DOWNVOTE_POINTS
             elif content_type == "COMMENT":
-                score = DOWNVOTE_OTHER_COMMENT_POINTS
-        
+                score = COMMENT_DOWNVOTE_POINTS
+
         return ScoreResponse(score=score)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
