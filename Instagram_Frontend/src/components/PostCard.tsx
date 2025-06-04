@@ -110,7 +110,17 @@ const PostCard: React.FC<PostCardProps> = ({
             {!post.author.profilePicture && post.author.username[0].toUpperCase()}
           </Avatar>
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="subtitle1">{post.author.username}</Typography>
+            <Typography variant="subtitle1">
+              {post.author.username}
+              <Typography 
+                component="span" 
+                variant="body2" 
+                color="primary" 
+                sx={{ ml: 1, fontWeight: 'bold' }}
+              >
+                {post.author.score || 0}
+              </Typography>
+            </Typography>
             <Typography variant="caption" color="text.secondary">
               {formatDate(post.dateTime)}
             </Typography>
