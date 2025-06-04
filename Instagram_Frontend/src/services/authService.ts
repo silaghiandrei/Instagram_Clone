@@ -13,7 +13,7 @@ class AuthService {
       }
 
       const userData = response.data;
-      localStorage.setItem('token', 'dummy-token'); // Replace with actual token when implementing JWT
+      localStorage.setItem('token', 'dummy-token'); 
       localStorage.setItem('userId', userData.id.toString());
       
       return userData;
@@ -41,7 +41,6 @@ class AuthService {
     if (!userId) return null;
 
     try {
-      // Fetch the full user data
       const user = await userService.getUserById(parseInt(userId));
       return user;
     } catch (error) {

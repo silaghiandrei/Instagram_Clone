@@ -28,7 +28,6 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Add logging for profile picture
     React.useEffect(() => {
         console.log('User profile picture exists:', !!user.profilePicture);
         if (user.profilePicture) {
@@ -95,6 +94,11 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                             ref={fileInputRef}
                             onChange={handleFileChange}
                         />
+                    </Box>
+                    <Box sx={{ mb: 2 }}>
+                        <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                            Score: {user.score || 0}
+                        </Typography>
                     </Box>
                     <Box component="form" onSubmit={onSubmit} sx={{ width: '100%', maxWidth: 600 }}>
                         <Grid container spacing={2}>

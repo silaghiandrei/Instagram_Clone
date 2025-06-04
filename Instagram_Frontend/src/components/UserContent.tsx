@@ -179,12 +179,16 @@ const UserContent: React.FC<UserContentProps> = ({
       const voteTypeEnum = voteType === 'up' ? 'UPVOTE' : 'DOWN_VOTE';
       const updatedPost = await postService.votePost(postId, parseInt(userId), voteTypeEnum);
       
-      // Update the posts list with the new vote counts
+      // Update the posts list with the new vote counts and author score
       setPosts(posts.map(post => 
         post.id === postId ? {
           ...post,
           upvotes: updatedPost.upvotes,
-          downvotes: updatedPost.downvotes
+          downvotes: updatedPost.downvotes,
+          author: {
+            ...post.author,
+            score: updatedPost.author.score
+          }
         } : post
       ));
     } catch (err) {

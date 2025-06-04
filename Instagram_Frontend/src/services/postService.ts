@@ -70,7 +70,6 @@ class PostService {
 
   async updatePost(postId: number, postData: Post) {
     try {
-      // Only send title and text for update
       const contentDTO = {
         id: postData.id,
         title: postData.title,

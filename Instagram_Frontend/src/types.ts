@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   profilePicture?: string;
+  score: number;
 }
 
 export interface Tag {
@@ -29,6 +30,7 @@ export interface UserData {
   username: string;
   email: string;
   profilePicture?: string;
+  score: number;
   bio?: string;
   followers?: number;
   following?: number;
@@ -60,4 +62,5 @@ export interface RegisterRequest {
 export interface AuthResponse {
   token: string;
   userId: number;
-} 
+}
+

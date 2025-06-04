@@ -32,7 +32,6 @@ interface PostDetailContentProps {
   onCommentTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCommentImageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCommentSubmit: (e: React.FormEvent) => void;
-  onBackClick: () => void;
   formatDate: (dateString?: string) => string;
   onClearImage: () => void;
   onEditComment?: (commentId: number, title: string, text: string) => Promise<void>;
@@ -51,7 +50,6 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
   onCommentTitleChange,
   onCommentImageChange,
   onCommentSubmit,
-  onBackClick,
   formatDate,
   onClearImage,
   onEditComment,
@@ -95,23 +93,25 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Button onClick={onBackClick} sx={{ mr: 2 }}>
-            Back
-          </Button>
-          <Typography variant="h5" component="h1">
-            {post.title}
-          </Typography>
-        </Box>
+        <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
+          {post.title}
+        </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Typography variant="subtitle1" color="text.secondary">
-            Posted by {post.author.username} on {formatDate(post.dateTime)}
+            {post.author.username} • <Typography 
+              component="span" 
+              variant="subtitle1" 
+              color="primary" 
+              sx={{ fontWeight: 700 }}
+            >
+              {post.author.score || 0}
+            </Typography> • {formatDate(post.dateTime)}
           </Typography>
         </Box>
 
         {post.image && (
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
             <img
               src={`data:image/jpeg;base64,${post.image}`}
               alt={post.title}
@@ -133,6 +133,7 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
             size="small"
             onClick={() => onVote(post.id!, 'up')}
             sx={{ mr: 1 }}
+            disabled={currentUser?.id === post.author?.id}
           >
             Upvote
           </Button>
@@ -144,6 +145,7 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
             size="small"
             onClick={() => onVote(post.id!, 'down')}
             sx={{ mr: 1 }}
+            disabled={currentUser?.id === post.author?.id}
           >
             Downvote
           </Button>
@@ -157,6 +159,11 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
           >
             {`${(post.upvotes || 0) - (post.downvotes || 0)} votes`}
           </Typography>
+          {currentUser?.id === post.author?.id && (
+            <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+              You cannot vote on your own content
+            </Typography>
+          )}
         </Box>
 
         <Divider sx={{ my: 3 }} />
@@ -269,6 +276,14 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                           <Box sx={{ flexGrow: 1 }}>
                             <Typography variant="subtitle2">
                               {comment.author?.username || 'Unknown User'}
+                              <Typography 
+                                component="span" 
+                                variant="body2" 
+                                color="primary" 
+                                sx={{ ml: 1, fontWeight: 'bold' }}
+                              >
+                                {comment.author?.score || 0}
+                              </Typography>
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               {formatDate(comment.dateTime)}
@@ -326,6 +341,7 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                               variant="outlined" 
                               size="small"
                               onClick={() => onVote(comment.id!, 'up')}
+                              disabled={currentUser?.id === comment.author?.id}
                             >
                               Upvote
                             </Button>
@@ -336,6 +352,7 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                               variant="outlined" 
                               size="small"
                               onClick={() => onVote(comment.id!, 'down')}
+                              disabled={currentUser?.id === comment.author?.id}
                             >
                               Downvote
                             </Button>
@@ -349,6 +366,11 @@ const PostDetailContent: React.FC<PostDetailContentProps> = ({
                             >
                               {`${(comment.upvotes || 0) - (comment.downvotes || 0)} votes`}
                             </Typography>
+                            {currentUser?.id === comment.author?.id && (
+                              <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                                You cannot vote on your own content
+                              </Typography>
+                            )}
                           </Box>
                         </Box>
                       </CardContent>

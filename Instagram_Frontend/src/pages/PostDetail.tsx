@@ -159,13 +159,37 @@ const PostDetail: React.FC = () => {
 
       const voteTypeEnum = voteType === 'up' ? 'UPVOTE' : 'DOWN_VOTE';
       const updatedPost = await postService.votePost(postId, parseInt(userId), voteTypeEnum);
-      
+
       if (post && postId === post.id) {
-        setPost(updatedPost);
+        const updatedPostWithNewScore = {
+          ...updatedPost,
+          author: {
+            ...updatedPost.author,
+            score: updatedPost.author.score
+          }
+        };
+        setPost(updatedPostWithNewScore);
       } else {
+        const updatedCommentWithNewScore = {
+          ...updatedPost,
+          author: {
+            ...updatedPost.author,
+            score: updatedPost.author.score
+          }
+        };
         setComments(comments.map(comment => 
-          comment.id === postId ? updatedPost : comment
+          comment.id === postId ? updatedCommentWithNewScore : comment
         ));
+
+        if (post && updatedPost.author.id === post.author.id) {
+          setPost(prevPost => ({
+            ...prevPost!,
+            author: {
+              ...prevPost!.author,
+              score: updatedPost.author.score
+            }
+          }));
+        }
       }
     } catch (error) {
       setError('Failed to process vote. Please try again.');
@@ -212,7 +236,6 @@ const PostDetail: React.FC = () => {
         onCommentTitleChange={(e) => setCommentTitle(e.target.value)}
         onCommentImageChange={handleCommentImageChange}
         onCommentSubmit={handleCommentSubmit}
-        onBackClick={() => navigate(-1)}
         formatDate={formatDate}
         onClearImage={() => {
           setCommentImage(null);

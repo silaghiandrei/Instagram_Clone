@@ -40,7 +40,7 @@ public class User {
     private UserRole role;
 
     @Column(name = "score")
-    private Integer score;
+    private Double score;
 
     @Column(name = "banned")
     private Boolean banned;

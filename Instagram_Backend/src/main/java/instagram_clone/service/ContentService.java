@@ -4,6 +4,7 @@ import instagram_clone.dto.ContentCreateDTO;
 import instagram_clone.dto.ContentDTO;
 import instagram_clone.dto.TagDTO;
 import instagram_clone.dto.ContentUpdateDTO;
+import instagram_clone.dto.ScoreDTO;
 import instagram_clone.dtoconverter.ContentConverter;
 import instagram_clone.dtoconverter.ContentCreateConverter;
 import instagram_clone.dtoconverter.ContentUpdateConverter;
@@ -27,15 +28,18 @@ public class ContentService {
     private final UserRepository userRepository;
     private final ContentCreateConverter contentCreateConverter;
     private final TagRepository tagRepository;
+    private final ScoreCalculationService scoreCalculationService;
 
     public ContentService(ContentRepository contentRepository, 
                          UserRepository userRepository,
                          ContentCreateConverter contentCreateConverter,
-                         TagRepository tagRepository) {
+                         TagRepository tagRepository,
+                         ScoreCalculationService scoreCalculationService) {
         this.contentRepository = contentRepository;
         this.userRepository = userRepository;
         this.contentCreateConverter = contentCreateConverter;
         this.tagRepository = tagRepository;
+        this.scoreCalculationService = scoreCalculationService;
     }
 
     @Transactional
@@ -58,7 +62,7 @@ public class ContentService {
             content.setStatus(PostStatus.JUST_POSTED);
         }
         
-        System.out.println("Saving content with status: " + content.getStatus());
+        System.err.println("Saving content with status: " + content.getStatus());
         Content savedContent = contentRepository.save(content);
         return ContentConverter.toDTO(savedContent);
     }
@@ -153,10 +157,8 @@ public class ContentService {
             throw new RuntimeException("Can only update status of posts");
         }
 
-        // Get the number of comments for this post
         List<Content> comments = contentRepository.findByParentId(id);
         
-        // Validate status change based on comment count
         if (newStatus == PostStatus.FIRST_REACTIONS && comments.isEmpty()) {
             throw new RuntimeException("Cannot set status to FIRST_REACTIONS for a post with no comments");
         }
@@ -168,25 +170,74 @@ public class ContentService {
 
     @Transactional
     public ContentDTO addVote(Long contentId, Long userId, VoteType voteType) {
-
         Content content = contentRepository.findById(contentId)
                 .orElseThrow(() -> new RuntimeException("Content not found with id: " + contentId));
         
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
+        if (content.getAuthor().getId().equals(userId)) {
+            throw new RuntimeException("Users cannot vote on their own content");
+        }
+
         Vote existingVote = content.getVotes().stream()
                 .filter(vote -> vote.getUser().getId().equals(userId))
                 .findFirst()
                 .orElse(null);
+
+        User author = content.getAuthor();
+        double authorCurrentScore = author.getScore() != null ? author.getScore() : 0.0;
+        double voterCurrentScore = user.getScore() != null ? user.getScore() : 0.0;
 
         if (existingVote != null) {
             if (existingVote.getType() == voteType) {
                 content.getVotes().remove(existingVote);
                 existingVote.setContent(null);
                 existingVote.setUser(null);
+                
+                ScoreDTO scoreDTO = new ScoreDTO();
+                scoreDTO.setVoterId(userId);
+                scoreDTO.setContentId(contentId);
+                scoreDTO.setContentType(content.getType().toString());
+                scoreDTO.setVoteType(existingVote.getType().toString());
+                scoreDTO.setAuthorId(author.getId());
+                double baseScore = scoreCalculationService.calculateScore(scoreDTO);
+                
+                author.setScore(authorCurrentScore - baseScore);
+                
+                if (content.getType() == ContentType.COMMENT && existingVote.getType() == VoteType.DOWN_VOTE) {
+                    user.setScore(voterCurrentScore - (baseScore + 1));
+                }
             } else {
+                VoteType oldType = existingVote.getType();
                 existingVote.setType(voteType);
+                
+                ScoreDTO oldScoreDTO = new ScoreDTO();
+                oldScoreDTO.setVoterId(userId);
+                oldScoreDTO.setContentId(contentId);
+                oldScoreDTO.setContentType(content.getType().toString());
+                oldScoreDTO.setVoteType(oldType.toString());
+                oldScoreDTO.setAuthorId(author.getId());
+                double oldBaseScore = scoreCalculationService.calculateScore(oldScoreDTO);
+                
+                ScoreDTO newScoreDTO = new ScoreDTO();
+                newScoreDTO.setVoterId(userId);
+                newScoreDTO.setContentId(contentId);
+                newScoreDTO.setContentType(content.getType().toString());
+                newScoreDTO.setVoteType(voteType.toString());
+                newScoreDTO.setAuthorId(author.getId());
+                double newBaseScore = scoreCalculationService.calculateScore(newScoreDTO);
+                
+                author.setScore(authorCurrentScore - oldBaseScore + newBaseScore);
+                
+                if (content.getType() == ContentType.COMMENT) {
+                    if (oldType == VoteType.DOWN_VOTE) {
+                        user.setScore(voterCurrentScore - (oldBaseScore + 1));
+                    }
+                    if (voteType == VoteType.DOWN_VOTE) {
+                        user.setScore(user.getScore() + (newBaseScore + 1));
+                    }
+                }
             }
         } else {
             Vote vote = new Vote();
@@ -195,11 +246,33 @@ public class ContentService {
             vote.setType(voteType);
             vote.setDateTime(LocalDateTime.now());
             content.getVotes().add(vote);
+            
+            ScoreDTO scoreDTO = new ScoreDTO();
+            scoreDTO.setVoterId(userId);
+            scoreDTO.setContentId(contentId);
+            scoreDTO.setContentType(content.getType().toString());
+            scoreDTO.setVoteType(voteType.toString());
+            scoreDTO.setAuthorId(author.getId());
+            double baseScore = scoreCalculationService.calculateScore(scoreDTO);
+            
+            author.setScore(authorCurrentScore + baseScore);
+            
+            if (content.getType() == ContentType.COMMENT && voteType == VoteType.DOWN_VOTE) {
+                user.setScore(voterCurrentScore + (baseScore + 1));
+            }
         }
 
-        Content updatedContent = contentRepository.save(content);
-
-        return ContentConverter.toDTO(updatedContent);
+        try {
+            author = userRepository.save(author);
+            user = userRepository.save(user);
+            
+            Content updatedContent = contentRepository.save(content);
+            updatedContent.setAuthor(author);
+            
+            return ContentConverter.toDTO(updatedContent);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save vote: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
