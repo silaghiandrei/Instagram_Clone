@@ -62,7 +62,7 @@ public class ContentService {
             content.setStatus(PostStatus.JUST_POSTED);
         }
         
-        System.out.println("Saving content with status: " + content.getStatus());
+        System.err.println("Saving content with status: " + content.getStatus());
         Content savedContent = contentRepository.save(content);
         return ContentConverter.toDTO(savedContent);
     }
@@ -176,7 +176,6 @@ public class ContentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
-        // Check if user is trying to vote on their own content
         if (content.getAuthor().getId().equals(userId)) {
             throw new RuntimeException("Users cannot vote on their own content");
         }
@@ -187,7 +186,8 @@ public class ContentService {
                 .orElse(null);
 
         User author = content.getAuthor();
-        double currentScore = author.getScore() != null ? author.getScore() : 0.0;
+        double authorCurrentScore = author.getScore() != null ? author.getScore() : 0.0;
+        double voterCurrentScore = user.getScore() != null ? user.getScore() : 0.0;
 
         if (existingVote != null) {
             if (existingVote.getType() == voteType) {
@@ -195,34 +195,49 @@ public class ContentService {
                 existingVote.setContent(null);
                 existingVote.setUser(null);
                 
-                ScoreDTO removeScoreDTO = new ScoreDTO();
-                removeScoreDTO.setVoterId(userId);
-                removeScoreDTO.setContentId(contentId);
-                removeScoreDTO.setContentType(content.getType().toString());
-                removeScoreDTO.setVoteType(existingVote.getType().toString());
-                removeScoreDTO.setAuthorId(content.getAuthor().getId());
-                double removeScore = scoreCalculationService.calculateScore(removeScoreDTO);
-                author.setScore(currentScore - removeScore);
+                ScoreDTO scoreDTO = new ScoreDTO();
+                scoreDTO.setVoterId(userId);
+                scoreDTO.setContentId(contentId);
+                scoreDTO.setContentType(content.getType().toString());
+                scoreDTO.setVoteType(existingVote.getType().toString());
+                scoreDTO.setAuthorId(author.getId());
+                double baseScore = scoreCalculationService.calculateScore(scoreDTO);
+                
+                author.setScore(authorCurrentScore - baseScore);
+                
+                if (content.getType() == ContentType.COMMENT && existingVote.getType() == VoteType.DOWN_VOTE) {
+                    user.setScore(voterCurrentScore - (baseScore + 1));
+                }
             } else {
+                VoteType oldType = existingVote.getType();
                 existingVote.setType(voteType);
                 
                 ScoreDTO oldScoreDTO = new ScoreDTO();
                 oldScoreDTO.setVoterId(userId);
                 oldScoreDTO.setContentId(contentId);
                 oldScoreDTO.setContentType(content.getType().toString());
-                oldScoreDTO.setVoteType(existingVote.getType().toString());
-                oldScoreDTO.setAuthorId(content.getAuthor().getId());
-                double oldScore = scoreCalculationService.calculateScore(oldScoreDTO);
+                oldScoreDTO.setVoteType(oldType.toString());
+                oldScoreDTO.setAuthorId(author.getId());
+                double oldBaseScore = scoreCalculationService.calculateScore(oldScoreDTO);
                 
                 ScoreDTO newScoreDTO = new ScoreDTO();
                 newScoreDTO.setVoterId(userId);
                 newScoreDTO.setContentId(contentId);
                 newScoreDTO.setContentType(content.getType().toString());
                 newScoreDTO.setVoteType(voteType.toString());
-                newScoreDTO.setAuthorId(content.getAuthor().getId());
-                double newScore = scoreCalculationService.calculateScore(newScoreDTO);
+                newScoreDTO.setAuthorId(author.getId());
+                double newBaseScore = scoreCalculationService.calculateScore(newScoreDTO);
                 
-                author.setScore(currentScore - oldScore + newScore);
+                author.setScore(authorCurrentScore - oldBaseScore + newBaseScore);
+                
+                if (content.getType() == ContentType.COMMENT) {
+                    if (oldType == VoteType.DOWN_VOTE) {
+                        user.setScore(voterCurrentScore - (oldBaseScore + 1));
+                    }
+                    if (voteType == VoteType.DOWN_VOTE) {
+                        user.setScore(user.getScore() + (newBaseScore + 1));
+                    }
+                }
             }
         } else {
             Vote vote = new Vote();
@@ -232,19 +247,32 @@ public class ContentService {
             vote.setDateTime(LocalDateTime.now());
             content.getVotes().add(vote);
             
-            ScoreDTO newScoreDTO = new ScoreDTO();
-            newScoreDTO.setVoterId(userId);
-            newScoreDTO.setContentId(contentId);
-            newScoreDTO.setContentType(content.getType().toString());
-            newScoreDTO.setVoteType(voteType.toString());
-            newScoreDTO.setAuthorId(content.getAuthor().getId());
-            double newScore = scoreCalculationService.calculateScore(newScoreDTO);
-            author.setScore(currentScore + newScore);
+            ScoreDTO scoreDTO = new ScoreDTO();
+            scoreDTO.setVoterId(userId);
+            scoreDTO.setContentId(contentId);
+            scoreDTO.setContentType(content.getType().toString());
+            scoreDTO.setVoteType(voteType.toString());
+            scoreDTO.setAuthorId(author.getId());
+            double baseScore = scoreCalculationService.calculateScore(scoreDTO);
+            
+            author.setScore(authorCurrentScore + baseScore);
+            
+            if (content.getType() == ContentType.COMMENT && voteType == VoteType.DOWN_VOTE) {
+                user.setScore(voterCurrentScore + (baseScore + 1));
+            }
         }
 
-        userRepository.save(author);
-        Content updatedContent = contentRepository.save(content);
-        return ContentConverter.toDTO(updatedContent);
+        try {
+            author = userRepository.save(author);
+            user = userRepository.save(user);
+            
+            Content updatedContent = contentRepository.save(content);
+            updatedContent.setAuthor(author);
+            
+            return ContentConverter.toDTO(updatedContent);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save vote: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
